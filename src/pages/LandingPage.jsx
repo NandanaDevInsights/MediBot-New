@@ -16,7 +16,7 @@ import lab7 from '../assets/lab7.png';
 import lab8 from '../assets/lab8.png';
 
 import './LandingPage.css';
-import { getUserProfile, getUserReports, updateUserProfile, getUserNotifications } from '../services/api';
+import { getUserProfile, getUserReports, updateUserProfile, getUserNotifications, API_BASE } from '../services/api';
 
 // --- Icon Components ---
 const IconHome = ({ size = 20 }) => (
@@ -1295,7 +1295,7 @@ const LandingPage = () => {
       const formattedTests = selectedTests.map(t => typeof t === 'object' ? t.name : t).join(', ');
 
       // Step 1: Create order on backend
-      const orderResponse = await fetch('/api/create-payment-order', {
+      const orderResponse = await fetch(`${API_BASE}/create-payment-order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1624,7 +1624,7 @@ const LandingPage = () => {
   // Fetch Reports
   const loadReports = async () => {
     try {
-      const response = await fetch('/api/reports', { credentials: 'include' });
+      const response = await fetch(`${API_BASE}/reports`, { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
         setReports(data);

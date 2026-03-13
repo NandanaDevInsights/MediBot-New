@@ -1,5 +1,5 @@
 // Default to Flask backend (http://localhost:5000/api). Override with VITE_API_URL in .env.local.
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+export const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
 const parseResponse = async (response) => {
   const data = await response.json().catch(() => ({}))
