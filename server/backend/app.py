@@ -8041,10 +8041,13 @@ def whatsapp_webhook():
         try:
 
             basedir = os.path.dirname(os.path.abspath(__file__))
-
             key_path = os.path.join(basedir, "google_key.json")
+            render_secret_path = "/etc/secrets/google_key.json"
+            
+            # Use Render secret path if it exists, otherwise local
+            final_key_path = render_secret_path if os.path.exists(render_secret_path) else key_path
 
-            if os.path.exists(key_path):
+            if os.path.exists(final_key_path):
 
                 print("[INFO] Using Google Vision OCR...")
 
