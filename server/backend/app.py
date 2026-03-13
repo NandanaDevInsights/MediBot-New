@@ -1788,11 +1788,6 @@ def reset_password():
 
 
 
-@app.get("/health")
-
-def health():
-
-  return jsonify({"status": "ok"})
 
 
 
