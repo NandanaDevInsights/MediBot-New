@@ -1,0 +1,95 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Environment files (keep secrets local)
+.env
+*.env.local
+google_key.json
+.firebaserc
+ca.pem
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+.env.backend
+
+# Firebase
+.firebase/
+
+# Project-specific Dumps and Logs
+*.txt
+!requirements.txt
+*.log
+*_dump.txt
+*_debug.txt
+*_output.txt
+*_results.txt
+diff.txt
+log_*.txt
+status*.txt
+files.txt
+tabs.txt
+curr_renders.txt
+old_renders.txt
+
+# Scratch and Debug Scripts
+tmp_*.py
+debug_*.py
+check_*.py
+test_*.py
+examine_*.py
+fix_*.py
+seed_*.py
+list_*.py
+describe_*.py
+find_*.py
+verify_*.py
+add_*.py
+migrate_*.py
+reset_*.py
+setup_*.py
+update_*.py
+simulate_*.py
+
+# Assets/Downloads
+*.png
+*.jpg
+*.jpeg
+*.pdf
+!public/
+!src/assets/
+
+# Miscellaneous Data Files
+*.json
+!package.json
+!package-lock.json
+!firebase.json
+!eslint.config.js
+!allpages.json
