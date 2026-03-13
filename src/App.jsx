@@ -1,18 +1,23 @@
 import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
-import ForgotPasswordPage from './pages/ForgotPasswordPage'
-import LoginPage from './pages/LoginPage'
-import SignupPage from './pages/SignupPage'
-import LandingPage from './pages/LandingPage'
-import ResetPasswordPage from './pages/ResetPasswordPage'
+import { lazy, Suspense } from 'react'
+import ProtectedRoute from './components/ProtectedRoute'
+import './App.css'
+
+// Lazy load major pages
+const LandingPage = lazy(() => import('./pages/LandingPage'))
+const LoginPage = lazy(() => import('./pages/LoginPage'))
+const SignupPage = lazy(() => import('./pages/SignupPage'))
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'))
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
+const LabAdminDashboard = lazy(() => import('./pages/LabAdminDashboard'))
+const SuperAdminDashboard = lazy(() => import('./pages/SuperAdminDashboard'))
+const AdminLoginPage = lazy(() => import('./pages/admin/AdminLoginPage'))
+const AdminSignupPage = lazy(() => import('./pages/admin/AdminSignupPage'))
+const AdminForgotPasswordPage = lazy(() => import('./pages/admin/AdminForgotPasswordPage'))
+const AdminAuthLayout = lazy(() => import('./pages/admin/AdminAuthLayout'))
+// Static assets
 import heroImage from './assets/bg.jpg'
 import logoImage from './assets/logo.png'
-import LabAdminDashboard from './pages/LabAdminDashboard'
-import SuperAdminDashboard from './pages/SuperAdminDashboard'
-import AdminAuthLayout from './pages/admin/AdminAuthLayout'
-import AdminLoginPage from './pages/admin/AdminLoginPage'
-import AdminSignupPage from './pages/admin/AdminSignupPage'
-import AdminForgotPasswordPage from './pages/admin/AdminForgotPasswordPage'
-import ProtectedRoute from './components/ProtectedRoute'
 import './App.css'
 
 const AuthLayout = ({ children, heading, subheading }) => {
@@ -49,7 +54,29 @@ const AuthLayout = ({ children, heading, subheading }) => {
 
 function App() {
   return (
-    <Routes>
+    <Suspense fallback={
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh', 
+        flexDirection: 'column',
+        gap: '16px',
+        color: '#2563eb'
+      }}>
+        <div style={{ 
+          width: '50px', 
+          height: '50px', 
+          border: '4px solid #f3f3f3', 
+          borderTop: '4px solid #2563eb', 
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite'
+        }}></div>
+        <p style={{ fontWeight: '600' }}>Loading MediBot...</p>
+        <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+      </div>
+    }>
+      <Routes>
       <Route
         path="/"
         element={
@@ -142,7 +169,8 @@ function App() {
       />
 
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+      </Routes>
+    </Suspense>
   )
 }
 
