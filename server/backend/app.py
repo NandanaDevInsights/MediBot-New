@@ -8046,7 +8046,7 @@ def whatsapp_webhook():
 
                 print("[INFO] Using Google Vision OCR...")
 
-                os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = key_path
+                os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = final_key_path
 
                 client = vision.ImageAnnotatorClient()
 
