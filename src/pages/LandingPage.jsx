@@ -1024,7 +1024,7 @@ const LandingPage = () => {
     if (selectedLab) {
       setLabSettings(null); // Clear previous lab's settings
       // Try to fetch custom settings for this lab from backend
-      fetch(`/api/labs/public-settings?name=${encodeURIComponent(selectedLab.name)}`)
+      fetch(`${API_BASE}/labs/public-settings?name=${encodeURIComponent(selectedLab.name)}`)
         .then(res => res.ok ? res.json() : null)
         .then(data => {
           if (data) {
@@ -1950,7 +1950,7 @@ const LandingPage = () => {
       const fetchWorkingHoursForLabs = async () => {
         const updatedLabs = await Promise.all(labsList.map(async (lab) => {
           try {
-            const response = await fetch(`http://localhost:5000/api/labs/working-hours?name=${encodeURIComponent(lab.name)}`);
+            const response = await fetch(`${API_BASE}/labs/working-hours?name=${encodeURIComponent(lab.name)}`);
             if (response.ok) {
               const data = await response.json();
               if (data.workingHours) {
