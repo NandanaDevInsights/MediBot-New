@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import heroBg from '../assets/LabHero.jpg';
-import labHeroSplit from '../assets/LabHeroSplit.png';
-import logoImage from '../assets/Logo.png';
-import microscopeBg from '../assets/MicroscopeBg.png';
+import heroBg from '../assets/labhero.jpg';
+import labHeroSplit from '../assets/labherosplit.png';
+import logoImage from '../assets/logo.png';
+import microscopeBg from '../assets/microscopebg.png';
 import dnaBg from '../assets/medibot_dna_bg.png';
 import moleculesBg from '../assets/medibot_3d_molecules.png';
 import lab1 from '../assets/lab1.png';

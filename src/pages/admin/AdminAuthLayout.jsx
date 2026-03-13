@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
-import heroImage from '../../assets/Bg.jpg'
-import logoImage from '../../assets/Logo.png'
+import heroImage from '../../assets/bg.jpg'
+import logoImage from '../../assets/logo.png'
 import '../../App.css'
 
 const AdminAuthLayout = ({ children, heading, subheading }) => {
