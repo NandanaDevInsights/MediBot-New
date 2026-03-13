@@ -24,6 +24,7 @@ def get_pool():
         user=os.environ.get("MYSQLUSER"),
         password=os.environ.get("MYSQLPASSWORD"),
         database=os.environ.get("MYSQLDATABASE"),
+        use_pure=True,  # Use pure Python to avoid C-extension SSL path errors
         ssl_verify_cert=True if os.environ.get("MYSQL_SSL_MODE") != "DISABLED" else False,
         ssl_ca=os.environ.get("MYSQL_SSL_CA")  # Path to CA cert for Aiven
     )
