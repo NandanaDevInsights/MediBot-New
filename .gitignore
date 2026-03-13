@@ -26,6 +26,7 @@ dist-ssr
 # Environment files (keep secrets local)
 .env
 *.env.local
+.env.render
 google_key.json
 .firebaserc
 ca.pem
