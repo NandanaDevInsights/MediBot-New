@@ -24,7 +24,7 @@ def get_pool():
         user=os.environ.get("MYSQLUSER"),
         password=os.environ.get("MYSQLPASSWORD"),
         database=os.environ.get("MYSQLDATABASE"),
-        ssl_mode=os.environ.get("MYSQL_SSL_MODE", "REQUIRED"),
+        ssl_verify_cert=True if os.environ.get("MYSQL_SSL_MODE") != "DISABLED" else False,
         ssl_ca=os.environ.get("MYSQL_SSL_CA")  # Path to CA cert for Aiven
     )
 
