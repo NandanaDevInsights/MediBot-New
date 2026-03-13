@@ -86,6 +86,12 @@ simulate_*.py
 *.pdf
 !public/
 !src/assets/
+!src/assets/*.png
+!src/assets/*.jpg
+!src/assets/*.jpeg
+!public/*.png
+!public/*.jpg
+!public/*.jpeg
 
 # Miscellaneous Data Files
 *.json
