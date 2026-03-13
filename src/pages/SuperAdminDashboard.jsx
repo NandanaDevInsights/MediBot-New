@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend, AreaChart, Area } from 'recharts';
 import './SuperAdminDashboard.css';
-import logoImage from '../assets/Logo.png';
+import logoImage from '../assets/logo.png';
 import {
     getSuperAdminStats,
     getSuperAdminLabs,
