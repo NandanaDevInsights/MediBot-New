@@ -6604,53 +6604,33 @@ def cancel_user_appointment():
     
 
     # Remove 'A-' prefix if present
-
-    if isinstance(appointment_id, str) and appointment_id.startswith('A-'):
-
-        appointment_id = appointment_id.replace('A-', '')
-
+    clean_id = str(appointment_id).replace('A-', '') if appointment_id else None
     
-
+    if not clean_id:
+        return jsonify({"message": "Appointment ID required"}), 400
+    
     conn = get_connection()
-
     try:
-
         cur = conn.cursor()
-
         
-
-        # Verify the appointment belongs to this user
-
-        cur.execute("SELECT id, status FROM appointments WHERE id=%s AND user_id=%s", (appointment_id, user_id))
-
-        appt = cur.fetchone()
-
-        
-
-        if not appt:
-
+        # Verify ownership and existence
+        cur.execute("SELECT id FROM appointments WHERE id=%s AND user_id=%s", (clean_id, user_id))
+        if not cur.fetchone():
             return jsonify({"message": "Appointment not found or access denied"}), 404
-
         
-
-        # Update status to Cancelled
-
-        cur.execute("UPDATE appointments SET status='Cancelled' WHERE id=%s", (appointment_id,))
-
+        # Update status
+        cur.execute("UPDATE appointments SET status='Cancelled' WHERE id=%s", (clean_id,))
         conn.commit()
-
         
-
+        if cur.rowcount == 0:
+             return jsonify({"message": "Cancellation failed - no records updated"}), 500
+             
         return jsonify({"message": "Booking cancelled successfully"}), 200
-
     except Exception as e:
-
         print(f"[ERROR] Cancel appointment failed: {e}")
-
+        conn.rollback()
         return jsonify({"message": "Server error"}), 500
-
     finally:
-
         conn.close()
 
 
@@ -6772,53 +6752,33 @@ def delete_user_appointment(appointment_id):
     
 
     # Remove 'A-' prefix if present
-
-    if isinstance(appointment_id, str) and appointment_id.startswith('A-'):
-
-        appointment_id = appointment_id.replace('A-', '')
-
+    clean_id = str(appointment_id).replace('A-', '') if appointment_id else None
     
-
+    if not clean_id:
+        return jsonify({"message": "Appointment ID required"}), 400
+        
     conn = get_connection()
-
     try:
-
         cur = conn.cursor()
-
         
-
-        # Verify the appointment belongs to this user
-
-        cur.execute("SELECT id FROM appointments WHERE id=%s AND user_id=%s", (appointment_id, user_id))
-
-        appt = cur.fetchone()
-
-        
-
-        if not appt:
-
+        # Verify ownership and existence
+        cur.execute("SELECT id FROM appointments WHERE id=%s AND user_id=%s", (clean_id, user_id))
+        if not cur.fetchone():
             return jsonify({"message": "Appointment not found or access denied"}), 404
-
         
-
-        # Delete the appointment
-
-        cur.execute("DELETE FROM appointments WHERE id=%s", (appointment_id,))
-
+        # Delete record
+        cur.execute("DELETE FROM appointments WHERE id=%s", (clean_id,))
         conn.commit()
-
         
-
+        if cur.rowcount == 0:
+            return jsonify({"message": "Deletion failed - no records removed"}), 500
+            
         return jsonify({"message": "Booking removed successfully"}), 200
-
     except Exception as e:
-
         print(f"[ERROR] Delete appointment failed: {e}")
-
+        conn.rollback()
         return jsonify({"message": "Server error"}), 500
-
     finally:
-
         conn.close()
 
 
