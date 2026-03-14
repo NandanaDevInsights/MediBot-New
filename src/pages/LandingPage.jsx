@@ -1217,7 +1217,7 @@ const LandingPage = () => {
         totalAmount: selectedTests.reduce((total, test) => total + getTestPrice(test.name || test, selectedLab?.id, labSettings?.tests, selectedLab.name), 0)
       };
 
-      const response = await fetch('/api/bookings', {
+      const response = await fetch(`${API_BASE}/bookings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -1329,7 +1329,7 @@ const LandingPage = () => {
             const patientName = sessionStorage.getItem('username') || 'Guest';
 
             // Verify payment on backend
-            const verifyRes = await fetch('/api/verify-payment', {
+            const verifyRes = await fetch(`${API_BASE}/verify-payment`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -1463,7 +1463,7 @@ const LandingPage = () => {
     }
 
     try {
-      const res = await fetch('/api/labs/feedback', {
+      const res = await fetch(`${API_BASE}/labs/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -1506,7 +1506,7 @@ const LandingPage = () => {
     setChatInput("");
 
     try {
-      const response = await fetch('/api/chat', {
+      const response = await fetch(`${API_BASE}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1582,7 +1582,7 @@ const LandingPage = () => {
   // Fetch Bookings from Backend
   const fetchBookings = async () => {
     try {
-      const response = await fetch('/api/user/appointments', {
+      const response = await fetch(`${API_BASE}/user/appointments`, {
         credentials: 'include'
       });
       if (response.ok) {
