@@ -1442,8 +1442,7 @@ const LandingPage = () => {
       // Rollback on error
       setBookings(originalBookings);
       showToast("Error removing booking.", 'error');
-    } finally {
-      setIsBooking(false);
+    }
   };
 
   const finalizeBooking = async () => {
