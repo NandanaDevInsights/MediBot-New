@@ -1419,6 +1419,10 @@ const LandingPage = () => {
   };
 
   const handleDeleteBooking = async (id) => {
+    // Optimistic UI update: Remove immediately from UI
+    const originalBookings = [...bookings];
+    setBookings(prev => prev.filter(b => b.id !== id));
+    
     setIsBooking(true);
     try {
       const response = await fetch(`${API_BASE}/user/appointments/${id}`, {
@@ -1427,15 +1431,21 @@ const LandingPage = () => {
       });
 
       if (response.ok) {
-        setBookings(prev => prev.filter(b => b.id !== id));
         showToast("Booking removed successfully.", 'success');
       } else {
-        showToast("Failed to remove booking.", 'error');
+        // Rollback on failure
+        setBookings(originalBookings);
+        showToast("Failed to remove booking. Please try again.", 'error');
       }
     } catch (e) {
       console.error(e);
+      // Rollback on error
+      setBookings(originalBookings);
       showToast("Error removing booking.", 'error');
     } finally {
+      setIsBooking(false);
+    }
+  };
       setIsBooking(false);
     }
   };
@@ -1477,6 +1487,7 @@ const LandingPage = () => {
     }
 
     try {
+      setIsBooking(true);
       const res = await fetch(`${API_BASE}/labs/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1502,6 +1513,8 @@ const LandingPage = () => {
       console.error("Error submitting feedback:", err);
       showToast("Failed to submit feedback. Please try again.", 'error');
       return;
+    } finally {
+      setIsBooking(false);
     }
 
     showToast(message, type);
