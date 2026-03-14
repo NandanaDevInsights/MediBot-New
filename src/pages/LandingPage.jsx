@@ -1103,6 +1103,8 @@ const LandingPage = () => {
 
   // Payment and additional booking states
   const [bookings, setBookings] = useState([]);
+  const [deletedBookingIds, setDeletedBookingIds] = useState(new Set());
+  const [cancelledBookingIds, setCancelledBookingIds] = useState(new Set());
   const [paymentStatus, setPaymentStatus] = useState('Pending');
   const [paymentStep, setPaymentStep] = useState('select'); // 'select', 'upi_scan', 'netbanking_selection', 'card_form'
   const [selectedUpiApp, setSelectedUpiApp] = useState(null);
@@ -1426,9 +1428,11 @@ const LandingPage = () => {
   };
 
   const handleDeleteBooking = async (id) => {
-    // True Optimistic UI: Remove immediately from UI without blocking loader
+    // Instant feedback: Update UI and show toast immediately
     const originalBookings = [...bookings];
     setBookings(prev => prev.filter(b => b.id !== id));
+    setDeletedBookingIds(prev => new Set(prev).add(id));
+    showToast("Booking removed successfully.", 'success');
     
     try {
       const response = await fetch(`${API_BASE}/user/appointments/${id}`, {
@@ -1439,15 +1443,23 @@ const LandingPage = () => {
       if (!response.ok) {
         // Rollback on failure
         setBookings(originalBookings);
-        showToast("Failed to remove booking. Please try again.", 'error');
-      } else {
-        showToast("Booking removed successfully.", 'success');
+        setDeletedBookingIds(prev => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+        showToast("Failed to remove booking on server. Restored.", 'error');
       }
     } catch (e) {
       console.error(e);
       // Rollback on error
       setBookings(originalBookings);
-      showToast("Error removing booking.", 'error');
+      setDeletedBookingIds(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      showToast("Error removing booking. Restored.", 'error');
     }
   };
 
@@ -1614,7 +1626,10 @@ const LandingPage = () => {
         credentials: 'include'
       });
       if (response.ok) {
-        const data = await response.json();
+        let data = await response.json();
+        // Filter out deleted and apply cancelled status for optimistic consistency
+        data = data.filter(b => !deletedBookingIds.has(b.id));
+        data = data.map(b => cancelledBookingIds.has(b.id) ? { ...b, status: 'Cancelled' } : b);
         setBookings(data);
       }
     } catch (e) {
@@ -1669,9 +1684,11 @@ const LandingPage = () => {
   const handleCancelBooking = async (bookingId) => {
     if (!window.confirm("Are you sure you want to cancel this booking?")) return;
 
-    // True Optimistic UI: Update status instantly without blocking loader
+    // Instant feedback: Update status and show toast immediately
     const originalBookings = [...bookings];
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'Cancelled' } : b));
+    setCancelledBookingIds(prev => new Set(prev).add(bookingId));
+    showToast("✓ Booking cancelled successfully.", 'success');
 
     try {
       const response = await fetch(`${API_BASE}/user/appointments/cancel`, {
@@ -1681,19 +1698,26 @@ const LandingPage = () => {
         body: JSON.stringify({ appointment_id: bookingId })
       });
 
-      if (response.ok) {
-        showToast("✓ Booking cancelled successfully.", 'success');
-        // fetchBookings(); // We already updated locally, but we can refetch in background if needed
-      } else {
+      if (!response.ok) {
         // Rollback on failure
         setBookings(originalBookings);
-        showToast("Failed to cancel booking. Please try again.", 'error');
+        setCancelledBookingIds(prev => {
+          const next = new Set(prev);
+          next.delete(bookingId);
+          return next;
+        });
+        showToast("Server failed to cancel booking. Restored.", 'error');
       }
     } catch (e) {
       console.error(e);
       // Rollback on error
       setBookings(originalBookings);
-      showToast("Error cancelling booking.", 'error');
+      setCancelledBookingIds(prev => {
+        const next = new Set(prev);
+        next.delete(bookingId);
+        return next;
+      });
+      showToast("Error cancelling booking. Restored.", 'error');
     }
   };
 
