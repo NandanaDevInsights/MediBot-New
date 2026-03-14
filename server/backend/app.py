@@ -8384,265 +8384,78 @@ def whatsapp_webhook():
 
 # --- Chatbot API (Gemini Integration) ---
 
+
 @app.route('/api/chat', methods=['POST'])
-
 def chat_bot():
-
+    """MediBot Assistant with Gemini integration and robust fallback."""
     try:
-
-        data = request.json
-
-        user_message = data.get('message', '')
-
+        data = request.json or {}
+        user_message = data.get('message', '').strip()
         history = data.get('history', [])
 
-
-
         if not user_message:
-
             return jsonify({"response": "I'm listening. What can I help you with today?"}), 200
 
-
-
+        print(f"[CHAT] Received message: {user_message[:50]}...")
+        
         api_key = os.environ.get("GEMINI_API_KEY")
-
         if not api_key:
+            print("[CHAT ERROR] GEMINI_API_KEY is missing in environment.")
+            return jsonify({"response": "Chat service is temporarily offline (Configuration Error)."}), 503
 
-            return jsonify({"response": "Chat service is temporarily offline. Please try again later."}), 503
+        # Configure Gemini
+        genai.configure(api_key=api_key)
 
-
-
-        # Enhanced System instructions with specific project knowledge
-
+        # Build prompt and history
         system_instruction = (
-
-            "You are MediBot, the advanced AI assistant for the MediBot Healthcare platform. "
-
-            "Your role is to assist users with navigating the website, booking diagnostic tests, and understanding our services.\n\n"
-
-            "--- ABOUT MEDIBOT ---\n"
-
-            "MediBot is a modern diagnostic booking platform. We bridge the gap between patients and laboratories, "
-
-            "making healthcare more accessible and digital.\n\n"
-
-            "--- CORE FEATURES ---\n"
-
-            "1. **Lab Search**: Users can find labs by name or location (e.g., Kanjirapally, Kochi). We use live OpenStreetMap data.\n"
-
-            "2. **Online Booking**: Seamlessly book tests like CBC, Lipid Profile, Thyroid tests, etc.\n"
-
-            "3. **Digital Reports**: View and download medical reports as PDFs directly from your dashboard.\n"
-
-            "4. **Prescription Analysis**: Upload a prescription, and our AI will detect the required tests.\n"
-
-            "5. **WhatsApp Bot**: Send prescriptions to our WhatsApp number for automated processing.\n"
-
-            "6. **Secure Payments**: Online payments via Razorpay (UPI, Cards, NetBanking) or choose 'Pay at Lab'.\n\n"
-
-            "--- NAVIGATION GUIDE ---\n"
-
-            "- **Home Page**: Overview of services and lab search.\n"
-
-            "- **Login/Signup**: Required for booking and viewing reports. Found at the top right of the landing page.\n"
-
-            "- **Profile**: Manage your age, gender, blood group, and contact details in the 'User Profile' section.\n"
-
-            "- **My Bookings**: Track status of your appointments (Confirmed, Pending, Completed).\n"
-
-            "- **Reports Tab**: View all your uploaded and processed diagnostic reports.\n\n"
-
-            "--- KEY LABORATORIES ---\n"
-
-            "Some of our top partners include Scanron Diagnostics, Royal Clinical Laboratory, and Dianova. "
-
-            "Each lab is fully equipped with modern diagnostic tools.\n\n"
-
-            "--- RECENT UPDATES ---\n"
-
-            "- Added interactive Laboratory Details with test lists and reviews.\n"
-
-            "- Improved WhatsApp OCR for better prescription test detection.\n"
-
-            "- Real-time notifications for report uploads.\n\n"
-
-            "--- GUIDELINES ---\n"
-
-            "- Be helpful, professional, and friendly.\n"
-
-            "- If users ask for medical advice, tell them you are an AI assistant for the platform and advise consulting a doctor.\n"
-
-            "- For support, refer them to support@medibot.com or +91-9876543210.\n"
-
-            "- Use the site's name 'MediBot' frequently to build trust.\n"
-
-            "- Keep responses concise and focused on site navigation and features."
-
+            "You are MediBot, the AI healthcare assistant for the MediBot platform. "
+            "Help users find labs, book tests, and find reports. Be professional and friendly."
         )
 
-
-
-        formatted_history = []
-
-        # System Message setup
-
-        formatted_history.append({"role": "user", "parts": [f"SYSTEM INSTRUCTION: {system_instruction}\nAcknowledge this as the platform assistant MediBot."] })
-
-        formatted_history.append({"role": "model", "parts": ["Understood. I am MediBot, your advanced healthcare assistant. I'm ready to help you with anything related to our services, labs, and bookings. How can I assist you today?"] })
-
-
-
-        # Process conversation history
+        formatted_history = [
+            {"role": "user", "parts": [f"SYSTEM: {system_instruction}. Acknowledge and introduce yourself."]},
+            {"role": "model", "parts": ["Hello! I am MediBot, your advanced healthcare assistant. How can I help you today?"]}
+        ]
 
         for msg in history:
-
-            if 'type' in msg and 'text' in msg:
-
-                # Skip the default welcome msg
-
-                if "Welcome to MediBot" in msg['text']:
-
-                    continue
-
-                role = "user" if msg['type'] == 'user' else "model"
-
-                formatted_history.append({"role": role, "parts": [msg['text']]})
-
-
-
-        # Gemini constraint: Role alternation
+            text = msg.get('text', '')
+            if not text or "Welcome to MediBot" in text: continue
+            role = "user" if msg.get('type') == 'user' else "model"
+            formatted_history.append({"role": role, "parts": [text]})
 
         final_history = []
-
         if formatted_history:
-
-            current_role = formatted_history[0]['role']
-
-            current_parts = formatted_history[0]['parts']
-
-            
-
-            for msg in formatted_history[1:]:
-
-                if msg['role'] == current_role:
-
-                    current_parts.extend(msg['parts'])
-
+            prev_role = None
+            for item in formatted_history:
+                if item['role'] == prev_role:
+                    final_history[-1]['parts'][0] += "\n" + item['parts'][0]
                 else:
-
-                    final_history.append({"role": current_role, "parts": current_parts})
-
-                    current_role = msg['role']
-
-                    current_parts = msg['parts']
-
-            final_history.append({"role": current_role, "parts": current_parts})
-
-
-
-        # Ensure history ends with 'model' for send_message
+                    final_history.append(item)
+                    prev_role = item['role']
 
         while final_history and final_history[-1]['role'] == 'user':
-
             final_history.pop()
 
-
-
-        # Try generating response
-
         try:
-
             model = genai.GenerativeModel('gemini-1.5-flash')
-
-            chat = model.start_chat(history=final_history)
-
-            response = chat.send_message(user_message)
-
+            if not final_history:
+                response = model.generate_content(f"{system_instruction}\n\nUser: {user_message}")
+            else:
+                chat = model.start_chat(history=final_history)
+                response = chat.send_message(user_message)
+            
             if response and hasattr(response, 'text') and response.text:
                 return jsonify({"response": response.text}), 200
             else:
-                print("[CHAT ERROR] Gemini returned an empty or invalid response object.")
-                return jsonify({"response": "I'm experiencing a minor brain freeze. Can you ask that again?"}), 500
+                raise ValueError("Empty response")
 
-        except Exception as ge:
-            print(f"[CHAT ERROR] Gemini API failure: {ge}")
-            return jsonify({"response": "I'm experiencing a minor brain freeze. Can you ask that again?"}), 500
-
-            print(f"[ERROR] Chat attempt 1 failed: {e}")
-
-            # Fallback to 1.5-flash if 2.0 is unavailable
-
-            try:
-
-                model = genai.GenerativeModel('gemini-1.5-flash')
-
-                chat = model.start_chat(history=final_history)
-
-                response = chat.send_message(user_message)
-
-                return jsonify({"response": response.text}), 200
-
-            except Exception as e2:
-
-                print(f"[ERROR] Chat attempt 2 failed: {e2}")
-
-                # Last resort: Stateless
-
-                try:
-
-                    model = genai.GenerativeModel('gemini-1.5-flash')
-
-                    response = model.generate_content(f"{system_instruction}\n\nUSER: {user_message}")
-
-                    return jsonify({"response": response.text}), 200
-
-                except Exception as e3:
-
-                    print(f"[ERROR] Chat attempt 3 failed: {e3}")
-
-                    # Rule-based fallback for site questions (Last resort)
-
-                    qa = {
-
-                        "book": "To book a test, find a lab on the home page, click 'Book Now', select your tests, and follow the prompts to payment.",
-
-                        "report": "Your medical reports are available in the 'Reports' tab. You can view them online or download them as PDFs.",
-
-                        "login": "Use the 'Login' button at the top right. If you're new, you can create an account using the 'Sign Up' link.",
-
-                        "payment": "We support online payments via Razorpay (UPI, Cards, NetBanking) and 'Pay at Lab'.",
-
-                        "whatsapp": "You can upload prescriptions via our WhatsApp bot for automated test detection.",
-
-                        "contact": "Contact us at support@medibot.com or +91-9876543210 for any assistance.",
-
-                        "price": "Prices vary by test, but a typical test costs around ₹150 plus the laboratory's booking fee.",
-
-                        "lab": "We partner with verified labs like Scanron, Royal Clinical Lab, and Dianova. You can search for them on our home page."
-
-                    }
-
-                    lower_msg = user_message.lower()
-
-                    for kw, ans in qa.items():
-
-                        if kw in lower_msg:
-
-                            return jsonify({"response": ans}), 200
-
-                    
-
-                    return jsonify({"response": "I'm currently having a minor technical glitch, but I'm still here to help! Most site features like booking tests and viewing reports are available from your dashboard. For specific help, feel free to ask about 'booking', 'reports', or 'payments'."}), 200
-
-
+        except Exception as api_err:
+            print(f"[CHAT ERROR] Gemini API Call failed: {api_err}")
+            return jsonify({"response": "I'm experiencing a bit of a brain freeze. Try asking about 'booking' or 'reports'!"}), 200
 
     except Exception as outer_e:
-
-        print(f"[CRITICAL] Chat Exception: {outer_e}")
-
-        return jsonify({"response": "I'm having a bit of trouble connecting to my brain right now. Please try again soon!"}), 500
-
-
+        print(f"[CHAT CRITICAL] Exception in chat_bot: {outer_e}")
+        return jsonify({"response": "Connection issue detected. Please try again."}), 500
 
 # Duplicate route removed to avoid conflict
 
