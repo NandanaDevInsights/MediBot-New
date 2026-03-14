@@ -52,7 +52,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
                     }}></div>
                     <div style={{ textAlign: 'center' }}>
                         <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '800', color: '#0f172a' }}>MediBot</h2>
-                        <p style={{ margin: '4px 0 0', fontWeight: '600', color: '#64748b' }}>Verifying session...</p>
+                        <p style={{ margin: '4px 0 0', fontWeight: '600', color: '#64748b' }}>Securely connecting...</p>
                     </div>
                 </div>
                 <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
