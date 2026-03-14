@@ -963,6 +963,7 @@ const LandingPage = () => {
   const [userProfile, setUserProfile] = useState(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [isBooking, setIsBooking] = useState(false);
 
   // New State for Features
   const [showNotifications, setShowNotifications] = useState(false);
@@ -1197,10 +1198,12 @@ const LandingPage = () => {
   };
 
   const handleConfirmBooking = async () => {
+    setIsBooking(true);
     try {
       const username = sessionStorage.getItem('username');
       if (!username) {
         alert('Please login to book tests');
+        setIsBooking(false);
         return;
       }
 
@@ -1232,6 +1235,8 @@ const LandingPage = () => {
     } catch (error) {
       console.error('Booking error:', error);
       showToast('Booking failed. Please try again.', 'error');
+    } finally {
+      setIsBooking(false);
     }
   };
 
@@ -1285,9 +1290,8 @@ const LandingPage = () => {
   };
 
   const initiateRazorpayPayment = async () => {
+    setIsBooking(true);
     try {
-
-
       // Calculate total amount - No service fee, only test prices
       const totalAmount = selectedTests.reduce((total, test) => total + getTestPrice(test.name || test, selectedLab?.id, labSettings?.tests, selectedLab.name), 0);
 
@@ -1325,6 +1329,7 @@ const LandingPage = () => {
         description: "Medical Laboratory Booking",
         order_id: orderData.order_id,
         handler: async (response) => {
+          setIsBooking(true);
           try {
             const patientName = sessionStorage.getItem('username') || 'Guest';
 
@@ -1393,9 +1398,9 @@ const LandingPage = () => {
 
       // Handle payment failure
       rzp.on('payment.failed', function (response) {
-        console.error("Payment failed:", response.error);
-        setPaymentStep('select');
-        showToast(`Payment failed: ${response.error.description || 'Please try again'}`, 'error');
+        console.error("Razorpay Payment Failed:", response.error);
+        showToast("Payment failed. Please try again.", 'error');
+        setIsBooking(false);
       });
 
       rzp.open();
@@ -1404,6 +1409,12 @@ const LandingPage = () => {
       console.error("Razorpay Error:", err);
       setPaymentStep('select');
       showToast(err.message || "Something went wrong with the payment gateway. Please try again.", 'error');
+    } finally {
+      // Note: we don't reset isBooking here if Razorpay opened successfully, 
+      // because the user is still in the payment flow.
+      // But if it failed BEFORE opening (e.g. order creation), we should reset it.
+      // Actually, it's safer to reset it if it catches an error before rzp.open()
+      if (paymentStep === 'select') setIsBooking(false);
     }
   };
 
@@ -4792,22 +4803,24 @@ const LandingPage = () => {
                                 setShowPaymentModal(false);
                                 setShowFeedbackModal(true);
                               }}
+                              disabled={isBooking}
                               style={{
                                 flex: 1,
                                 padding: '0.7rem 1rem',
                                 borderRadius: '8px',
                                 background: 'white',
-                                color: '#0c4a6e',
-                                border: '2px solid #0ea5e9',
+                                color: isBooking ? '#94a3b8' : '#0c4a6e',
+                                border: isBooking ? '2px solid #e2e8f0' : '2px solid #0ea5e9',
                                 fontSize: '0.85rem',
                                 fontWeight: 600,
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
+                                cursor: isBooking ? 'not-allowed' : 'pointer',
+                                transition: 'all 0.2s',
+                                opacity: isBooking ? 0.7 : 1
                               }}
-                              onMouseEnter={(e) => { e.currentTarget.style.background = '#f0f9ff'; }}
-                              onMouseLeave={(e) => { e.currentTarget.style.background = 'white'; }}
+                              onMouseEnter={(e) => { if (!isBooking) e.currentTarget.style.background = '#f0f9ff'; }}
+                              onMouseLeave={(e) => { if (!isBooking) e.currentTarget.style.background = 'white'; }}
                             >
-                              Pay at Lab
+                              {isBooking && paymentMethod === 'Pay at Lab' ? 'Processing...' : 'Pay at Lab'}
                             </button>
 
                             {/* Pay Online Button */}
@@ -4824,24 +4837,29 @@ const LandingPage = () => {
                                 border: 'none',
                                 fontSize: '0.9rem',
                                 fontWeight: 700,
-                                cursor: 'pointer',
-                                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+                                cursor: isBooking ? 'not-allowed' : 'pointer',
+                                boxShadow: isBooking ? 'none' : '0 4px 12px rgba(37, 99, 235, 0.3)',
                                 transition: 'all 0.2s',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                gap: '0.5rem'
+                                gap: '0.5rem',
+                                opacity: isBooking ? 0.8 : 1
                               }}
                               onMouseEnter={(e) => {
-                                e.currentTarget.style.transform = 'translateY(-1px)';
-                                e.currentTarget.style.boxShadow = '0 6px 16px rgba(37, 99, 235, 0.4)';
+                                if (!isBooking) {
+                                  e.currentTarget.style.transform = 'translateY(-1px)';
+                                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(37, 99, 235, 0.4)';
+                                }
                               }}
                               onMouseLeave={(e) => {
-                                e.currentTarget.style.transform = 'translateY(0)';
-                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(37, 99, 235, 0.3)';
+                                if (!isBooking) {
+                                  e.currentTarget.style.transform = 'translateY(0)';
+                                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(37, 99, 235, 0.3)';
+                                }
                               }}
                             >
-                              🔒 Pay Online
+                              {isBooking && paymentMethod !== 'Pay at Lab' ? '◌ Sending...' : '🔒 Pay Online'}
                             </button>
                           </div>
                         </div>
