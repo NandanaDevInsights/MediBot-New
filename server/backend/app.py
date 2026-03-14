@@ -8552,15 +8552,21 @@ def chat_bot():
 
         try:
 
-            model = genai.GenerativeModel('gemini-2.0-flash')
+            model = genai.GenerativeModel('gemini-1.5-flash')
 
             chat = model.start_chat(history=final_history)
 
             response = chat.send_message(user_message)
 
-            return jsonify({"response": response.text}), 200
+            if response and hasattr(response, 'text') and response.text:
+                return jsonify({"response": response.text}), 200
+            else:
+                print("[CHAT ERROR] Gemini returned an empty or invalid response object.")
+                return jsonify({"response": "I'm experiencing a minor brain freeze. Can you ask that again?"}), 500
 
-        except Exception as e:
+        except Exception as ge:
+            print(f"[CHAT ERROR] Gemini API failure: {ge}")
+            return jsonify({"response": "I'm experiencing a minor brain freeze. Can you ask that again?"}), 500
 
             print(f"[ERROR] Chat attempt 1 failed: {e}")
 

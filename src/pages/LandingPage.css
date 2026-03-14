@@ -1298,6 +1298,11 @@ body {
   transform: translateY(-50%);
   color: var(--text-muted);
   pointer-events: none;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  height: auto;
+  z-index: 10;
 }
 
 /* Location Modal Button */
