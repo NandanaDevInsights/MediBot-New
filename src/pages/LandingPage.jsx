@@ -2297,7 +2297,9 @@ const LandingPage = () => {
             </p>
 
             <div className="location-input-group">
-              <IconSearch className="location-input-icon" size={20} />
+              <div className="location-input-icon-wrapper">
+                <IconSearch size={20} />
+              </div>
               <input
                 type="text"
                 placeholder="E.g. Kanjirapally, Kochi, Bangalore"

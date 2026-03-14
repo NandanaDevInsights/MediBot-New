@@ -1291,18 +1291,24 @@ body {
   outline: none;
 }
 
-.location-input-icon {
+.location-input-icon-wrapper {
   position: absolute;
-  left: 1rem;
+  left: 1.25rem;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--text-muted);
-  pointer-events: none;
+  color: #64748b;
   display: flex !important;
   align-items: center;
   justify-content: center;
-  height: auto;
+  pointer-events: none;
   z-index: 10;
+  width: 20px;
+  height: 20px;
+}
+
+.location-input-icon-wrapper svg {
+  width: 100%;
+  height: 100%;
 }
 
 /* Location Modal Button */
