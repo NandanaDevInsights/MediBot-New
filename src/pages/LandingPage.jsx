@@ -1419,6 +1419,7 @@ const LandingPage = () => {
   };
 
   const handleDeleteBooking = async (id) => {
+    setIsBooking(true);
     try {
       const response = await fetch(`${API_BASE}/user/appointments/${id}`, {
         method: 'DELETE',
@@ -1434,6 +1435,8 @@ const LandingPage = () => {
     } catch (e) {
       console.error(e);
       showToast("Error removing booking.", 'error');
+    } finally {
+      setIsBooking(false);
     }
   };
 
@@ -1652,8 +1655,9 @@ const LandingPage = () => {
   const handleCancelBooking = async (bookingId) => {
     if (!window.confirm("Are you sure you want to cancel this booking?")) return;
 
+    setIsBooking(true);
     try {
-      const response = await fetch('http://localhost:5000/api/user/appointments/cancel', {
+      const response = await fetch(`${API_BASE}/user/appointments/cancel`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -1669,6 +1673,8 @@ const LandingPage = () => {
     } catch (e) {
       console.error(e);
       showToast("Error cancelling booking.", 'error');
+    } finally {
+      setIsBooking(false);
     }
   };
 
@@ -4859,7 +4865,7 @@ const LandingPage = () => {
                                 }
                               }}
                             >
-                              {isBooking && paymentMethod !== 'Pay at Lab' ? '◌ Sending...' : '🔒 Pay Online'}
+                              🔒 Pay Online
                             </button>
                           </div>
                         </div>
@@ -5440,6 +5446,55 @@ const LandingPage = () => {
           </div>
         );
       })()}
+      {/* Global Loading Overlay */}
+      {isBooking && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: 'rgba(255, 255, 255, 0.15)',
+          backdropFilter: 'blur(8px)',
+          zIndex: 99999,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          animation: 'fadeIn 0.3s ease-out'
+        }}>
+          <div style={{
+            background: 'white',
+            padding: '2.5rem',
+            borderRadius: '24px',
+            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.1)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '1.5rem',
+            maxWidth: '320px',
+            width: '90%',
+            textAlign: 'center'
+          }}>
+            <div className="med-loader-spinner" style={{
+              width: '50px',
+              height: '50px',
+              border: '4px solid #f3f3f3',
+              borderTop: '4px solid #0ea5e9',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite'
+            }}></div>
+            <div>
+              <h3 style={{ margin: 0, color: '#0f172a', fontSize: '1.2rem', fontWeight: 700 }}>Processing Request</h3>
+              <p style={{ margin: '0.5rem 0 0', color: '#64748b', fontSize: '0.9rem' }}>Please wait, we are handling your request securely.</p>
+            </div>
+          </div>
+          <style>{`
+            @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+          `}</style>
+        </div>
+      )}
     </div >
   );
 };
