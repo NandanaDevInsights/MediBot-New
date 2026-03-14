@@ -1304,10 +1304,10 @@ def verify_otp():
         # Add notification for patient login
         try:
             cur_notif = conn.cursor()
-            notif_query = "INSERT INTO admin_notification (title, description, notification_type, icon) VALUES (%s, %s, 'info', '👤')"
+            notif_query = "INSERT INTO admin_notification (lab_id, title, description, notification_type, icon) VALUES (%s, %s, %s, 'info', '👤')"
             notif_title = f"Patient Login: {db_username}"
             notif_desc = f"Patient {db_username} ({email}) logged in successfully."
-            cur_notif.execute(notif_query, (notif_title, notif_desc))
+            cur_notif.execute(notif_query, (0, notif_title, notif_desc))
             conn.commit()
             cur_notif.close()
         except Exception as ne:
@@ -1859,10 +1859,10 @@ def google_callback():
     # Add notification for login
     try:
         cur_notif = conn.cursor()
-        notif_query = "INSERT INTO admin_notification (title, description) VALUES (%s, %s)"
+        notif_query = "INSERT INTO admin_notification (lab_id, title, description) VALUES (%s, %s, %s)"
         notif_title = f"{role.replace('_', ' ').title()} Login (Google): {email}"
         notif_desc = f"{role} {email} logged in successfully via Google."
-        cur_notif.execute(notif_query, (notif_title, notif_desc))
+        cur_notif.execute(notif_query, (0, notif_title, notif_desc))
         conn.commit()
         cur_notif.close()
     except Exception as ne:
