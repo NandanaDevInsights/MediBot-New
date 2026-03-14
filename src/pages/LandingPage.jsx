@@ -1426,23 +1426,22 @@ const LandingPage = () => {
   };
 
   const handleDeleteBooking = async (id) => {
-    // Optimistic UI update: Remove immediately from UI
+    // True Optimistic UI: Remove immediately from UI without blocking loader
     const originalBookings = [...bookings];
     setBookings(prev => prev.filter(b => b.id !== id));
     
-    setIsBooking(true);
     try {
       const response = await fetch(`${API_BASE}/user/appointments/${id}`, {
         method: 'DELETE',
         credentials: 'include'
       });
 
-      if (response.ok) {
-        showToast("Booking removed successfully.", 'success');
-      } else {
+      if (!response.ok) {
         // Rollback on failure
         setBookings(originalBookings);
         showToast("Failed to remove booking. Please try again.", 'error');
+      } else {
+        showToast("Booking removed successfully.", 'success');
       }
     } catch (e) {
       console.error(e);
@@ -1670,7 +1669,10 @@ const LandingPage = () => {
   const handleCancelBooking = async (bookingId) => {
     if (!window.confirm("Are you sure you want to cancel this booking?")) return;
 
-    setIsBooking(true);
+    // True Optimistic UI: Update status instantly without blocking loader
+    const originalBookings = [...bookings];
+    setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'Cancelled' } : b));
+
     try {
       const response = await fetch(`${API_BASE}/user/appointments/cancel`, {
         method: 'POST',
@@ -1681,15 +1683,17 @@ const LandingPage = () => {
 
       if (response.ok) {
         showToast("✓ Booking cancelled successfully.", 'success');
-        fetchBookings(); // Refresh list
+        // fetchBookings(); // We already updated locally, but we can refetch in background if needed
       } else {
-        showToast("Failed to cancel booking.", 'error');
+        // Rollback on failure
+        setBookings(originalBookings);
+        showToast("Failed to cancel booking. Please try again.", 'error');
       }
     } catch (e) {
       console.error(e);
+      // Rollback on error
+      setBookings(originalBookings);
       showToast("Error cancelling booking.", 'error');
-    } finally {
-      setIsBooking(false);
     }
   };
 
