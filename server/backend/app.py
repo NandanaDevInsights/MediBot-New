@@ -561,98 +561,57 @@ def create_reset_request(conn, user_id: int, ttl_minutes: int = 60) -> str:
 
 
 def send_reset_email(to_email: str, reset_link: str):
+  BREVO_API_KEY = os.environ.get("BREVO_API_KEY")
+  if not BREVO_API_KEY:
+    raise RuntimeError("BREVO_API_KEY is not configured")
 
-  if not SMTP_HOST or not SMTP_USER or not SMTP_PASS:
-
-    raise RuntimeError("SMTP is not configured (SMTP_HOST/USER/PASS)")
-
-
-
-  msg = EmailMessage()
-
-  msg["Subject"] = "Reset your MediBot password"
-
-  msg["From"] = SMTP_FROM
-
-  msg["To"] = to_email
-
-  msg.set_content(f"Click the link to reset your password: {reset_link}\nIf you did not request this, you can ignore it.")
-
-
-
-  if SMTP_USE_TLS:
-
-    with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as smtp:
-
-      smtp.starttls()
-
-      smtp.login(SMTP_USER, SMTP_PASS)
-
-      smtp.send_message(msg)
-
-  else:
-
-    with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as smtp:
-
-      smtp.login(SMTP_USER, SMTP_PASS)
-
-      smtp.send_message(msg)
+  url = "https://api.brevo.com/v3/smtp/email"
+  headers = {
+      "accept": "application/json",
+      "api-key": BREVO_API_KEY,
+      "content-type": "application/json"
+  }
+  payload = {
+      "sender": {"name": "MediBot", "email": SMTP_FROM},
+      "to": [{"email": to_email}],
+      "subject": "Reset your MediBot password",
+      "textContent": f"Click the link to reset your password: {reset_link}\nIf you did not request this, you can ignore it."
+  }
+  try:
+      response = requests.post(url, json=payload, headers=headers, timeout=10)
+      if response.status_code not in [200, 201, 202]:
+          print(f"[ERROR] Brevo API failed for reset email: {response.text}")
+  except Exception as e:
+      print(f"[ERROR] Exception calling Brevo API: {e}")
 
 
 
 
 
 def send_otp_email(to_email: str, otp_code: str):
-
-  if not SMTP_HOST or not SMTP_USER or not SMTP_PASS:
-
-    # Fallback for dev if no SMTP
-
-    print(f"[DEBUG] SMTP not configured. OTP for {to_email}: {otp_code}")
-
+  BREVO_API_KEY = os.environ.get("BREVO_API_KEY")
+  if not BREVO_API_KEY:
+    print(f"[DEBUG] BREVO_API_KEY not configured. OTP for {to_email}: {otp_code}")
     return
 
-
-
-  msg = EmailMessage()
-
-  msg["Subject"] = "Your Login OTP - MediBot"
-
-  msg["From"] = SMTP_FROM
-
-  msg["To"] = to_email
-
-  msg.set_content(f"Your One-Time Password (OTP) for login is: {otp_code}\n\nThis code expires in 10 minutes.\nDo not share this code with anyone.")
-
-
-
+  url = "https://api.brevo.com/v3/smtp/email"
+  headers = {
+      "accept": "application/json",
+      "api-key": BREVO_API_KEY,
+      "content-type": "application/json"
+  }
+  payload = {
+      "sender": {"name": "MediBot", "email": SMTP_FROM},
+      "to": [{"email": to_email}],
+      "subject": "Your Login OTP - MediBot",
+      "textContent": f"Your One-Time Password (OTP) for login is: {otp_code}\n\nThis code expires in 10 minutes.\nDo not share this code with anyone."
+  }
   try:
-
-      if SMTP_USE_TLS:
-
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as smtp:
-
-          smtp.starttls()
-
-          smtp.login(SMTP_USER, SMTP_PASS)
-
-          smtp.send_message(msg)
-
-      else:
-
-        with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as smtp:
-
-          smtp.login(SMTP_USER, SMTP_PASS)
-
-          smtp.send_message(msg)
-
+      response = requests.post(url, json=payload, headers=headers, timeout=10)
+      if response.status_code not in [200, 201, 202]:
+          print(f"[ERROR] Brevo API failed for OTP email: {response.text}")
   except Exception as e:
-
-      print(f"[ERROR] Failed to send OTP email: {e}")
-
-      # We don't raise here to allow the flow to continue (frontend might show a "resend" button or dev debug)
-
-      pass
+      print(f"[ERROR] Exception calling Brevo API: {e}")
 
 
 
