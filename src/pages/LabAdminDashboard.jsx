@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import './LabAdminDashboard.css';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import logoImage from '../assets/logo.png';
+import { API_BASE } from '../services/api';
 
 
 // --- Icons (SVGs) for Professional Look ---
@@ -384,7 +385,7 @@ const LabAdminDashboard = () => {
         const checkAuth = async () => {
             try {
                 // Check if user is authenticated AND has correct role
-                const res = await fetch('http://localhost:5000/api/profile', { credentials: 'include' });
+                const res = await fetch(`${API_BASE}/profile`, { credentials: 'include' });
                 if (res.status === 401 || res.status === 403) {
                     console.warn("Dashboard: Backend auth check failed (401/403). ProtectedRoute will handle redirect.");
                     // Don't redirect here - ProtectedRoute already handles it
@@ -430,7 +431,7 @@ const LabAdminDashboard = () => {
         const fetchData = async () => {
             try {
                 // Fetch Stats
-                const statsRes = await fetch('http://localhost:5000/api/admin/stats', { credentials: 'include' });
+                const statsRes = await fetch(`${API_BASE}/admin/stats`, { credentials: 'include' });
                 if (statsRes.status === 401 || statsRes.status === 403) {
                     navigate('/admin/login');
                     return;
@@ -441,7 +442,7 @@ const LabAdminDashboard = () => {
                 }
 
                 // Fetch Recent Appointments (for overview)
-                const appsRes = await fetch('http://localhost:5000/api/admin/appointments', { credentials: 'include' });
+                const appsRes = await fetch(`${API_BASE}/admin/appointments`, { credentials: 'include' });
                 if (appsRes.ok) {
                     const data = await appsRes.json();
                     if (Array.isArray(data)) {
@@ -514,7 +515,7 @@ const LabAdminDashboard = () => {
 
         if (activeSection === 'Payments') {
             setLoadingPayments(true);
-            fetch('http://localhost:5000/api/admin/payments', { credentials: 'include' })
+            fetch(`${API_BASE}/admin/payments`, { credentials: 'include' })
                 .then(res => res.json())
                 .then(data => { if (Array.isArray(data)) setPaymentsData(data); })
                 .catch(err => console.error('Payments fetch error', err))
@@ -522,8 +523,8 @@ const LabAdminDashboard = () => {
         } else if (activeSection === 'Settings') {
             setLoadingSettings(true);
             Promise.all([
-                fetch('http://localhost:5000/api/lab-feedback', { credentials: 'include' }).then(r => r.ok ? r.json() : { feedback: [] }).catch(() => ({ feedback: [] })),
-                fetch('http://localhost:5000/api/admin/lab-settings', { credentials: 'include' }).then(r => r.ok ? r.json() : null).catch(() => null)
+                fetch(`${API_BASE}/lab-feedback`, { credentials: 'include' }).then(r => r.ok ? r.json() : { feedback: [] }).catch(() => ({ feedback: [] })),
+                fetch(`${API_BASE}/admin/lab-settings`, { credentials: 'include' }).then(r => r.ok ? r.json() : null).catch(() => null)
             ]).then(([fbData, settingsData]) => {
                 const feedbackArr = Array.isArray(fbData?.feedback) ? fbData.feedback.map(f => ({
                     id: f.id, patient: f.patient_name || 'Anonymous',
@@ -543,7 +544,7 @@ const LabAdminDashboard = () => {
                 .finally(() => setLoadingSettings(false));
         } else if (activeSection === 'Patients') {
             setLoadingPatients(true);
-            fetch('http://localhost:5000/api/admin/patients', { credentials: 'include' })
+            fetch(`${API_BASE}/admin/patients`, { credentials: 'include' })
                 .then(res => {
                     if (res.status === 401 || res.status === 403) throw new Error("Unauthorized");
                     if (!res.ok) throw new Error(`Server Error: ${res.status}`);
@@ -574,7 +575,7 @@ const LabAdminDashboard = () => {
     // Fetch Patients for Upload Modal if not already loaded
     useEffect(() => {
         if (showUploadModal && patients.length === 0) {
-            fetch('http://localhost:5000/api/admin/patients', { credentials: 'include' })
+            fetch(`${API_BASE}/admin/patients`, { credentials: 'include' })
                 .then(res => res.json())
                 .then(data => {
                     if (Array.isArray(data)) setPatients(data);
@@ -669,7 +670,7 @@ const LabAdminDashboard = () => {
             sessionStorage.removeItem('auth_role');
             navigate('/admin/login');
         };
-        fetch('http://localhost:5000/api/logout', { method: 'POST', credentials: 'include' })
+        fetch(`${API_BASE}/logout`, { method: 'POST', credentials: 'include' })
             .then(doLogout)
             .catch(doLogout);
     };
@@ -688,7 +689,7 @@ const LabAdminDashboard = () => {
         setAppointments(prev => prev.map(a => a.id === id ? { ...a, status: newStatus } : a));
 
         try {
-            const res = await fetch(`http://localhost:5000/api/admin/appointments/${numericId}/status`, {
+            const res = await fetch(`${API_BASE}/admin/appointments/${numericId}/status`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: newStatus }),
@@ -699,7 +700,7 @@ const LabAdminDashboard = () => {
                 showToast(`Status updated to ${newStatus}`, "success");
             } else {
                 // Revert on failure
-                const appsRes = await fetch('http://localhost:5000/api/admin/appointments', { credentials: 'include' });
+                const appsRes = await fetch(`${API_BASE}/admin/appointments`, { credentials: 'include' });
                 if (appsRes.ok) {
                     const data = await appsRes.json();
                     setAppointments(data);
@@ -719,7 +720,7 @@ const LabAdminDashboard = () => {
         }
 
         try {
-            const res = await fetch('http://localhost:5000/api/admin/appointments', {
+            const res = await fetch(`${API_BASE}/admin/appointments`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -743,7 +744,7 @@ const LabAdminDashboard = () => {
                 setShowBookingModal(false);
                 setNewBooking({ patientName: '', age: '', gender: 'Male', contact: '', category: '', test: '', date: '', time: '', doctor: '' });
                 // Refresh appointments
-                const appsRes = await fetch('http://localhost:5000/api/admin/appointments', { credentials: 'include' });
+                const appsRes = await fetch(`${API_BASE}/admin/appointments`, { credentials: 'include' });
                 if (appsRes.ok) {
                     const data = await appsRes.json();
 
@@ -767,7 +768,7 @@ const LabAdminDashboard = () => {
             // Optimistic update
             setStaff(prev => prev.map(s => s.id === id ? { ...s, status: newStatus } : s));
 
-            const res = await fetch(`http://localhost:5000/api/admin/staff/${id}/status`, {
+            const res = await fetch(`${API_BASE}/admin/staff/${id}/status`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: newStatus }),
@@ -816,7 +817,7 @@ const LabAdminDashboard = () => {
         const payload = { ...newStaff, photoPreview: finalPhoto };
 
         try {
-            const res = await fetch('http://localhost:5000/api/admin/staff', {
+            const res = await fetch(`${API_BASE}/admin/staff`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
@@ -834,7 +835,7 @@ const LabAdminDashboard = () => {
                     internalNotes: '', tags: []
                 });
                 // Force Refresh
-                const refreshRes = await fetch('http://localhost:5000/api/admin/staff', { credentials: 'include' });
+                const refreshRes = await fetch(`${API_BASE}/admin/staff`, { credentials: 'include' });
                 const refreshData = await refreshRes.json();
 
                 // Safety check to prevent crash if backend returns error object instead of array
@@ -872,7 +873,7 @@ const LabAdminDashboard = () => {
 
     const handleSaveProfile = async () => {
         try {
-            const res = await fetch('http://localhost:5000/api/admin/profile', {
+            const res = await fetch(`${API_BASE}/admin/profile`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(profileData),
@@ -893,7 +894,7 @@ const LabAdminDashboard = () => {
         formData.append('file', uploadData.file);
 
         try {
-            const res = await fetch('http://localhost:5000/api/admin/upload-report', {
+            const res = await fetch(`${API_BASE}/admin/upload-report`, {
                 method: 'POST',
                 body: formData,
                 credentials: 'include'
@@ -903,8 +904,8 @@ const LabAdminDashboard = () => {
                 setShowUploadModal(false);
                 setUploadData({ patient_id: '', test_name: '', file: null });
                 // Refresh
-                fetch('http://localhost:5000/api/admin/reports', { credentials: 'include' }).then(r => r.json()).then(setReports);
-                fetch('http://localhost:5000/api/admin/appointments', { credentials: 'include' }).then(r => r.json()).then(setAppointments);
+                fetch(`${API_BASE}/admin/reports`, { credentials: 'include' }).then(r => r.json()).then(setReports);
+                fetch(`${API_BASE}/admin/appointments`, { credentials: 'include' }).then(r => r.json()).then(setAppointments);
             } else {
                 showToast("Upload Failed", "error");
             }
@@ -920,7 +921,7 @@ const LabAdminDashboard = () => {
         try {
             // Encode ID to handle '+' in phone numbers
             const encodedId = encodeURIComponent(patient.id);
-            const res = await fetch(`http://localhost:5000/api/admin/patients/${encodedId}/history`, { credentials: 'include' });
+            const res = await fetch(`${API_BASE}/admin/patients/${encodedId}/history`, { credentials: 'include' });
             if (res.ok) {
                 const data = await res.json();
                 setPatientHistory(data);
@@ -936,7 +937,7 @@ const LabAdminDashboard = () => {
     // --- Token System Actions ---
     const fetchTokens = async (labName, date, time) => {
         try {
-            const res = await fetch(`http://localhost:5000/api/admin/tokens?lab_name=${encodeURIComponent(labName)}&date=${date}&time=${time}`, { credentials: 'include' });
+            const res = await fetch(`${API_BASE}/admin/tokens?lab_name=${encodeURIComponent(labName)}&date=${date}&time=${time}`, { credentials: 'include' });
             if (res.ok) {
                 const data = await res.json();
                 // data is array of { token_number, slot_status, user_id }
@@ -968,7 +969,7 @@ const LabAdminDashboard = () => {
         if (!currentTokenData) return;
         setIsBookingToken(true);
         try {
-            const res = await fetch('http://localhost:5000/api/admin/tokens/book', {
+            const res = await fetch(`${API_BASE}/admin/tokens/book`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -1017,7 +1018,7 @@ const LabAdminDashboard = () => {
         }
 
         try {
-            const res = await fetch(`http://localhost:5000/api/admin/appointments/${statusUpdateAppointment.id}/status`, {
+            const res = await fetch(`${API_BASE}/admin/appointments/${statusUpdateAppointment.id}/status`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -1800,7 +1801,7 @@ const LabAdminDashboard = () => {
                                                 onChange={async (e) => {
                                                     const newStatus = e.target.value;
                                                     try {
-                                                        const res = await fetch(`http://localhost:5000/api/admin/appointments/${appt.id}/status`, {
+                                                        const res = await fetch(`${API_BASE}/admin/appointments/${appt.id}/status`, {
                                                             method: 'PUT',
                                                             headers: { 'Content-Type': 'application/json' },
                                                             credentials: 'include',
@@ -2616,7 +2617,7 @@ const LabAdminDashboard = () => {
             formData.append('appointment_id', appointmentId);
 
             try {
-                const res = await fetch('http://localhost:5000/api/admin/reports/upload', {
+                const res = await fetch(`${API_BASE}/admin/reports/upload`, {
                     method: 'POST',
                     body: formData,
                     credentials: 'include'
@@ -2624,13 +2625,13 @@ const LabAdminDashboard = () => {
                 if (res.ok) {
                     showToast("Report uploaded successfully");
                     // Refresh reports
-                    const reportsRes = await fetch('http://localhost:5000/api/admin/reports', { credentials: 'include' });
+                    const reportsRes = await fetch(`${API_BASE}/admin/reports`, { credentials: 'include' });
                     if (reportsRes.ok) {
                         const data = await reportsRes.json();
                         setReports(data);
                     }
                     // Refresh appointments to reflect status change to Completed
-                    const apptsRes = await fetch('http://localhost:5000/api/admin/appointments', { credentials: 'include' });
+                    const apptsRes = await fetch(`${API_BASE}/admin/appointments`, { credentials: 'include' });
                     if (apptsRes.ok) {
                         const apptsData = await apptsRes.json();
                         setAppointments(apptsData);
@@ -3293,7 +3294,7 @@ const LabAdminDashboard = () => {
                         <div style={{ marginTop: '32px', borderTop: '1px solid var(--med-border)', paddingTop: '24px' }}>
                             <button className="med-btn-gradient" onClick={async () => {
                                 try {
-                                    await fetch('http://localhost:5000/api/admin/lab-settings', {
+                                    await fetch(`${API_BASE}/admin/lab-settings`, {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json' },
                                         body: JSON.stringify({
@@ -3470,7 +3471,7 @@ const LabAdminDashboard = () => {
                                                                     setLabSettings(newSettings);
 
                                                                     try {
-                                                                        await fetch('http://localhost:5000/api/admin/lab-settings', {
+                                                                        await fetch(`${API_BASE}/admin/lab-settings`, {
                                                                             method: 'POST',
                                                                             headers: { 'Content-Type': 'application/json' },
                                                                             body: JSON.stringify({
@@ -3518,7 +3519,7 @@ const LabAdminDashboard = () => {
                                                                 setLabSettings(newSettings);
 
                                                                 try {
-                                                                    await fetch('http://localhost:5000/api/admin/lab-settings', {
+                                                                    await fetch(`${API_BASE}/admin/lab-settings`, {
                                                                         method: 'POST',
                                                                         headers: { 'Content-Type': 'application/json' },
                                                                         body: JSON.stringify({
@@ -4627,14 +4628,14 @@ const LabAdminDashboard = () => {
                                                     const newVal = e.target.value;
                                                     setSelectedAppointment(prev => ({ ...prev, technician: newVal }));
                                                     // API Call to update details
-                                                    await fetch(`http://localhost:5000/api/admin/appointments/${selectedAppointment.id.replace('A-', '')}/details`, {
+                                                    await fetch(`${API_BASE}/admin/appointments/${selectedAppointment.id.replace('A-', '')}/details`, {
                                                         method: 'PUT',
                                                         headers: { 'Content-Type': 'application/json' },
                                                         body: JSON.stringify({ technician: newVal }),
                                                         credentials: 'include'
                                                     });
                                                     // Refresh list in background
-                                                    const res = await fetch('http://localhost:5000/api/admin/appointments', { credentials: 'include' });
+                                                    const res = await fetch(`${API_BASE}/admin/appointments`, { credentials: 'include' });
                                                     if (res.ok) {
                                                         const data = await res.json();
                                                         const filtered = data.filter(a =>
@@ -4660,7 +4661,7 @@ const LabAdminDashboard = () => {
                                                 onChange={async (e) => {
                                                     const newVal = e.target.value;
                                                     setSelectedAppointment(prev => ({ ...prev, paymentStatus: newVal }));
-                                                    await fetch(`http://localhost:5000/api/admin/appointments/${selectedAppointment.id.replace('A-', '')}/details`, {
+                                                    await fetch(`${API_BASE}/admin/appointments/${selectedAppointment.id.replace('A-', '')}/details`, {
                                                         method: 'PUT',
                                                         headers: { 'Content-Type': 'application/json' },
                                                         body: JSON.stringify({ paymentStatus: newVal }),
