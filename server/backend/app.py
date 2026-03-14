@@ -1900,11 +1900,10 @@ def google_callback():
     # Add notification for login
     try:
         cur_notif = conn.cursor()
-        notif_query = "INSERT INTO admin_notification (title, description, notification_type, icon) VALUES (%s, %s, 'info', %s)"
+        notif_query = "INSERT INTO admin_notification (title, description) VALUES (%s, %s)"
         notif_title = f"{role.replace('_', ' ').title()} Login (Google): {email}"
         notif_desc = f"{role} {email} logged in successfully via Google."
-        icon = '🛡️' if role == 'SUPER_ADMIN' else ('🏢' if role == 'LAB_ADMIN' else '👤')
-        cur_notif.execute(notif_query, (notif_title, notif_desc, icon))
+        cur_notif.execute(notif_query, (notif_title, notif_desc))
         conn.commit()
         cur_notif.close()
     except Exception as ne:
@@ -8959,7 +8958,7 @@ def create_user_booking():
             # Add revenue notification if paid
             if payment_status == 'Paid':
                 amount_str = f"₹{total_amount}" if total_amount else "Market Price"
-                rev_query = "INSERT INTO admin_notification (title, description, notification_type, icon) VALUES (%s, %s, 'success', '💰')"
+                rev_query = "INSERT INTO admin_notification (title, description) VALUES (%s, %s)"
                 rev_title = f"Revenue Generated: {lab_name}"
                 rev_desc = f"Revenue of {amount_str} received from {patient_name} for booking at {lab_name}."
                 cur.execute(rev_query, (rev_title, rev_desc))
