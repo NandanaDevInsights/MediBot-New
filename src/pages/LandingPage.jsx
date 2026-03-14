@@ -1444,10 +1444,6 @@ const LandingPage = () => {
       showToast("Error removing booking.", 'error');
     } finally {
       setIsBooking(false);
-    }
-  };
-      setIsBooking(false);
-    }
   };
 
   const finalizeBooking = async () => {
