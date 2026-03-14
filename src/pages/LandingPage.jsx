@@ -1384,6 +1384,7 @@ const LandingPage = () => {
           ondismiss: function () {
             // User closed Razorpay modal
             setPaymentStep('select');
+            setIsBooking(false); // Stop loader when dismissed
             showToast("Payment cancelled", 'error');
           }
         }
@@ -1399,7 +1400,8 @@ const LandingPage = () => {
       // Handle payment failure
       rzp.on('payment.failed', function (response) {
         console.error("Razorpay Payment Failed:", response.error);
-        showToast("Payment failed. Please try again.", 'error');
+        const reason = response.error.description || "Payment failed. Please try again.";
+        showToast(reason, 'error');
         setIsBooking(false);
       });
 
@@ -1407,14 +1409,19 @@ const LandingPage = () => {
 
     } catch (err) {
       console.error("Razorpay Error:", err);
+      const isConnectionError = err.message.includes('Connection aborted') || err.message.includes('Remote disconnected');
+      const errorMsg = isConnectionError 
+        ? "⚠️ Connection lost. Please check your internet and try again." 
+        : (err.message || "Something went wrong with the payment gateway. Please try again.");
+      
       setPaymentStep('select');
-      showToast(err.message || "Something went wrong with the payment gateway. Please try again.", 'error');
+      showToast(errorMsg, 'error');
+      setIsBooking(false);
     } finally {
-      // Note: we don't reset isBooking here if Razorpay opened successfully, 
-      // because the user is still in the payment flow.
-      // But if it failed BEFORE opening (e.g. order creation), we should reset it.
-      // Actually, it's safer to reset it if it catches an error before rzp.open()
-      if (paymentStep === 'select') setIsBooking(false);
+      // Safety reset: if payment modal didn't even open, we must stop the loader
+      if (paymentStep === 'select') {
+        setTimeout(() => setIsBooking(false), 500);
+      }
     }
   };
 
@@ -2283,14 +2290,6 @@ const LandingPage = () => {
     return () => { document.body.style.overflow = 'auto'; };
   }, [showReportsModal, showLabDetailsModal, showViewerModal, showPaymentModal, showReminders, showMyBookingsModal]);
 
-  if (isInitialLoading) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f0f9ff' }}>
-        <div className="spinner"></div>
-        <span style={{ marginLeft: '12px', color: '#3b82f6', fontWeight: 600 }}>Loading MediBot...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="landing-container" style={{
