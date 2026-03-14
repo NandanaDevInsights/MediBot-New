@@ -100,3 +100,4 @@ simulate_*.py
 !firebase.json
 !eslint.config.js
 !allpages.json
+!vercel.json
