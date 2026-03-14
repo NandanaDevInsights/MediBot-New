@@ -1103,8 +1103,6 @@ const LandingPage = () => {
 
   // Payment and additional booking states
   const [bookings, setBookings] = useState([]);
-  const [deletedBookingIds, setDeletedBookingIds] = useState(new Set());
-  const [cancelledBookingIds, setCancelledBookingIds] = useState(new Set());
   const [paymentStatus, setPaymentStatus] = useState('Pending');
   const [paymentStep, setPaymentStep] = useState('select'); // 'select', 'upi_scan', 'netbanking_selection', 'card_form'
   const [selectedUpiApp, setSelectedUpiApp] = useState(null);
@@ -1428,38 +1426,25 @@ const LandingPage = () => {
   };
 
   const handleDeleteBooking = async (id) => {
-    // Instant feedback: Update UI and show toast immediately
-    const originalBookings = [...bookings];
-    setBookings(prev => prev.filter(b => b.id !== id));
-    setDeletedBookingIds(prev => new Set(prev).add(id));
-    showToast("Booking removed successfully.", 'success');
-    
+    setIsBooking(true);
     try {
       const response = await fetch(`${API_BASE}/user/appointments/${id}`, {
         method: 'DELETE',
         credentials: 'include'
       });
 
-      if (!response.ok) {
-        // Rollback on failure
-        setBookings(originalBookings);
-        setDeletedBookingIds(prev => {
-          const next = new Set(prev);
-          next.delete(id);
-          return next;
-        });
-        showToast("Failed to remove booking on server. Restored.", 'error');
+      if (response.ok) {
+        setBookings(prev => prev.filter(b => b.id !== id));
+        showToast("Booking removed successfully.", 'success');
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        showToast(errorData.message || "Failed to remove booking on server.", 'error');
       }
     } catch (e) {
       console.error(e);
-      // Rollback on error
-      setBookings(originalBookings);
-      setDeletedBookingIds(prev => {
-        const next = new Set(prev);
-        next.delete(id);
-        return next;
-      });
-      showToast("Error removing booking. Restored.", 'error');
+      showToast("Error removing booking. Please try again.", 'error');
+    } finally {
+      setIsBooking(false);
     }
   };
 
@@ -1627,9 +1612,6 @@ const LandingPage = () => {
       });
       if (response.ok) {
         let data = await response.json();
-        // Filter out deleted and apply cancelled status for optimistic consistency
-        data = data.filter(b => !deletedBookingIds.has(b.id));
-        data = data.map(b => cancelledBookingIds.has(b.id) ? { ...b, status: 'Cancelled' } : b);
         setBookings(data);
       }
     } catch (e) {
@@ -1684,12 +1666,7 @@ const LandingPage = () => {
   const handleCancelBooking = async (bookingId) => {
     if (!window.confirm("Are you sure you want to cancel this booking?")) return;
 
-    // Instant feedback: Update status and show toast immediately
-    const originalBookings = [...bookings];
-    setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'Cancelled' } : b));
-    setCancelledBookingIds(prev => new Set(prev).add(bookingId));
-    showToast("✓ Booking cancelled successfully.", 'success');
-
+    setIsBooking(true);
     try {
       const response = await fetch(`${API_BASE}/user/appointments/cancel`, {
         method: 'POST',
@@ -1698,26 +1675,18 @@ const LandingPage = () => {
         body: JSON.stringify({ appointment_id: bookingId })
       });
 
-      if (!response.ok) {
-        // Rollback on failure
-        setBookings(originalBookings);
-        setCancelledBookingIds(prev => {
-          const next = new Set(prev);
-          next.delete(bookingId);
-          return next;
-        });
-        showToast("Server failed to cancel booking. Restored.", 'error');
+      if (response.ok) {
+        setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'Cancelled' } : b));
+        showToast("✓ Booking cancelled successfully.", 'success');
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        showToast(errorData.message || "Server failed to cancel booking.", 'error');
       }
     } catch (e) {
       console.error(e);
-      // Rollback on error
-      setBookings(originalBookings);
-      setCancelledBookingIds(prev => {
-        const next = new Set(prev);
-        next.delete(bookingId);
-        return next;
-      });
-      showToast("Error cancelling booking. Restored.", 'error');
+      showToast("Error cancelling booking. Please try again.", 'error');
+    } finally {
+      setIsBooking(false);
     }
   };
 
