@@ -27,10 +27,13 @@ const InputField = ({
           onChange={onChange}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? `${name}-error` : undefined}
+          style={{ paddingLeft: icon ? undefined : '1rem' }}
         />
-        <span className="input-icon" aria-hidden>
-          {icon}
-        </span>
+        {icon && (
+          <span className="input-icon" aria-hidden>
+            {icon}
+          </span>
+        )}
       </div>
       {error ? (
         <p className="input-error" id={`${name}-error`}>
@@ -163,12 +166,6 @@ const LoginPage = () => {
             value={form.username || ''}
             onChange={onInput}
             error={errors.username}
-            icon={
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="#4da3ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                <circle cx="12" cy="7" r="4" stroke="#4da3ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            }
           />
 
 
@@ -181,18 +178,6 @@ const LoginPage = () => {
               value={form.password}
               onChange={onInput}
               error={errors.password}
-              icon={
-                <svg width="18" height="16" viewBox="0 0 18 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="3" y="7" width="12" height="8" rx="1.6" stroke="#4da3ff" strokeWidth="1.2" />
-                  <path
-                    d="M6 7V5C6 2.79086 7.79086 1 10 1C12.2091 1 14 2.79086 14 5V7"
-                    stroke="#4da3ff"
-                    strokeWidth="1.2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              }
             />
             <Link className="inline-link" to="/forgot">
               Forgot Password?
@@ -211,12 +196,6 @@ const LoginPage = () => {
             setErrors((prev) => ({ ...prev, otp: undefined }))
           }}
           error={errors.otp}
-          icon={
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="#4da3ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M9 12L11 14L15 10" stroke="#4da3ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          }
         />
       )}
 
