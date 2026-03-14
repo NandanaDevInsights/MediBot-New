@@ -1409,7 +1409,7 @@ const LandingPage = () => {
 
   const handleDeleteBooking = async (id) => {
     try {
-      const response = await fetch(`/api/user/appointments/${id}`, {
+      const response = await fetch(`${API_BASE}/user/appointments/${id}`, {
         method: 'DELETE',
         credentials: 'include'
       });
