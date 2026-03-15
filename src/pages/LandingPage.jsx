@@ -2820,18 +2820,43 @@ const LandingPage = () => {
             </button>
 
 
-            <button className="nav-item-btn" onClick={() => setShowMyBookingsModal(true)}>
+            <button 
+              className="nav-item-btn" 
+              onClick={() => { 
+                setShowMyBookingsModal(true); 
+                setShowNotifications(false); 
+                setShowReminders(false); 
+                setShowReportsModal(false); 
+                setShowProfileModal(false); 
+              }}
+            >
               <IconCalendar />
               <span>Bookings {bookings.length > 0 && `(${bookings.length})`}</span>
             </button>
-            <button className="nav-item-btn" onClick={() => { setShowReportsModal(true); loadReports(); }}>
+            <button 
+              className="nav-item-btn" 
+              onClick={() => { 
+                setShowReportsModal(true); 
+                loadReports(); 
+                setShowNotifications(false); 
+                setShowReminders(false); 
+                setShowMyBookingsModal(false); 
+                setShowProfileModal(false); 
+              }}
+            >
               <IconFileText />
               <span>Reports</span>
             </button>
 
             <button
               className="profile-btn-group"
-              onClick={() => setShowProfileModal(true)}
+              onClick={() => {
+                setShowProfileModal(true);
+                setShowNotifications(false);
+                setShowReminders(false);
+                setShowMyBookingsModal(false);
+                setShowReportsModal(false);
+              }}
               title="View Profile"
             >
               <span className="profile-name" style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
