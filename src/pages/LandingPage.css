@@ -555,7 +555,7 @@ body {
     /* Title left, chips right */
     align-items: center;
     position: relative;
-    margin-top: -3rem;
+    margin-top: 4rem;
     z-index: 20;
     margin-bottom: 3rem;
   }
