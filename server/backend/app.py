@@ -8839,7 +8839,7 @@ def create_user_booking():
                 "lab_name": lab_name,
                 "tests_booked": tests_str,
                 "payment_amount": total_amount if total_amount else "To be paid at lab",
-                "payment_method": payment_method or "Pay at Lab",
+                "payment_method": "Online" if (payment_method or "").lower() == "online" else "Pay at Lab",
                 "payment_status": payment_status,
                 "booking_id": f"A-{new_id}",
                 "payment_date": date_str,

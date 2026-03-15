@@ -1128,31 +1128,32 @@ const LandingPage = () => {
   };
 
   const clearNotification = async (id) => {
-    // If id is local (created via Date.now() for demo purposes only and large enough), we might not find it in backend, but we'll try. 
-    // Actually all notifications should now come from backend or be removed if just frontend.
-    // We will try backend delete, if fails (or if it was a frontend-only note), we still remove from UI.
-
-    if (!window.confirm("Remove this notification?")) return;
-
+    // Remove from UI immediately for responsiveness
+    setNotifications(prev => prev.filter(n => n.id !== id));
+    // Delete from backend in background
     try {
-      const response = await fetch(`/api/user/notifications/${id}`, {
+      await fetch(`${API_BASE}/user/notifications/${id}`, {
         method: 'DELETE',
         credentials: 'include'
       });
-      // Remove from UI regardless of backend status to stay responsive, 
-      // effectively treating failure as "already gone" or "local only".
-      setNotifications(prev => prev.filter(n => n.id !== id));
     } catch (e) {
       console.error("Error deleting notification:", e);
-      // Still remove from UI
-      setNotifications(prev => prev.filter(n => n.id !== id));
     }
   };
 
-  const clearAllNotifications = () => {
+  const clearAllNotifications = async () => {
     if (notifications.length === 0) return;
-    if (window.confirm("Clear all notifications?")) {
-      setNotifications([]);
+    if (!window.confirm("Clear all notifications?")) return;
+    // Delete all from backend, then clear UI
+    const ids = notifications.map(n => n.id);
+    setNotifications([]);
+    for (const id of ids) {
+      try {
+        await fetch(`${API_BASE}/user/notifications/${id}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+      } catch (e) { /* ignore individual failures */ }
     }
   };
 
@@ -5475,12 +5476,7 @@ const LandingPage = () => {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
                 Done &amp; Close
               </button>
-              <button
-                onClick={() => window.print()}
-                style={{ width: '100%', marginTop: '12px', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0', background: 'white', color: '#475569', fontWeight: 600, fontSize: '0.95rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-              >
-                <IconDownload size={16} /> Print Receipt
-              </button>
+
             </div>
           </div>
         );
