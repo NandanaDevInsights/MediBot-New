@@ -2811,21 +2811,6 @@ const LandingPage = () => {
               <span>Home</span>
             </button>
             
-            <button className="nav-item-btn" onClick={() => scrollToSection('laboratories')}>
-              <IconSearch size={18} />
-              <span>Services</span>
-            </button>
-
-            <button className="nav-item-btn" onClick={() => scrollToSection('why-choose')}>
-              <IconShield size={18} />
-              <span>Features</span>
-            </button>
-
-            <button className="nav-item-btn" onClick={() => scrollToSection('reviews')}>
-              <IconStar size={18} />
-              <span>Testimonials</span>
-            </button>
-
             <button
               className="nav-item-btn"
               onClick={() => { setShowNotifications(true); setShowReminders(false); setShowMyBookingsModal(false); setShowReportsModal(false); setShowProfileModal(false); }}
