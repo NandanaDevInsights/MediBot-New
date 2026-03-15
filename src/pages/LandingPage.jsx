@@ -16,7 +16,7 @@ import lab7 from '../assets/lab7.png';
 import lab8 from '../assets/lab8.png';
 
 import './LandingPage.css';
-import { getUserProfile, getUserReports, updateUserProfile, getUserNotifications, markNotificationsAsRead, markSingleNotificationAsRead, clearAllUserNotifications, API_BASE, createBooking, createPaymentOrder, verifyPayment } from '../services/api';
+import { getUserProfile, getUserReports, updateUserProfile, getUserNotifications, markNotificationsAsRead, markSingleNotificationAsRead, clearAllUserNotifications, API_BASE, createBooking, createPaymentOrder, verifyPayment, logoutUser } from '../services/api';
 
 // --- Icon Components ---
 const IconHome = ({ size = 20 }) => (
@@ -2256,20 +2256,24 @@ const LandingPage = () => {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     const confirm = window.confirm("Are you sure you want to logout?");
     if (confirm) {
-      // ✅ Immediately clear client-side session and redirect — no waiting on backend
-      sessionStorage.removeItem('auth_role');
-      sessionStorage.removeItem('user_location_coords');
-      sessionStorage.removeItem('username');
-      sessionStorage.removeItem('user_id');
-      sessionStorage.removeItem('email');
-      navigate('/login');
-
-      // 🔕 Fire-and-forget: clear Flask session cookie in background
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-      fetch(`${API_BASE_URL}/logout`, { method: 'POST', credentials: 'include' }).catch(() => {});
+      try {
+        await logoutUser();
+        // Clear client-side session
+        sessionStorage.removeItem('auth_role');
+        sessionStorage.removeItem('user_location_coords');
+        sessionStorage.removeItem('username');
+        sessionStorage.removeItem('user_id');
+        sessionStorage.removeItem('email');
+        navigate('/login');
+      } catch (err) {
+        console.error("Logout Error:", err);
+        // Fallback: clear storage and navigate anyway
+        sessionStorage.removeItem('auth_role');
+        navigate('/login');
+      }
     }
   };
 

@@ -101,6 +101,14 @@ export const resetPassword = async (payload) => {
   })
 }
 
+export const logoutUser = async (options = {}) => {
+  return fetchWithLoading(`${API_BASE}/logout`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+  }, options)
+}
+
 
 export const getUserProfile = async (options = {}) => {
   return fetchWithLoading(`${API_BASE}/profile`, {

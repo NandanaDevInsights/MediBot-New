@@ -10,7 +10,8 @@ import {
     getSuperAdminUsers,
     getSuperAdminChartData,
     getSuperAdminNotifications,
-    deleteUserRecord
+    deleteUserRecord,
+    logoutUser
 } from '../services/api';
 
 // --- Icon System (SVG Components) ---
@@ -2795,7 +2796,21 @@ const SuperAdminDashboard = () => {
                             <Icon.Alerts />
                             <span className="notification-badge"></span>
                         </button>
-                        <button className="btn btn-outline" style={{ borderRadius: '20px' }} onClick={() => navigate('/admin/login')}>
+                        <button className="btn btn-outline" style={{ borderRadius: '20px' }} onClick={async () => {
+                            try {
+                                await logoutUser();
+                                sessionStorage.removeItem('auth_role');
+                                sessionStorage.removeItem('username');
+                                sessionStorage.removeItem('user_id');
+                                sessionStorage.removeItem('email');
+                                navigate('/admin/login');
+                            } catch (err) {
+                                console.error("Logout Error:", err);
+                                // Fallback: clear storage and navigate anyway
+                                sessionStorage.removeItem('auth_role');
+                                navigate('/admin/login');
+                            }
+                        }}>
                             Logout
                         </button>
                     </div>

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import './LabAdminDashboard.css';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import logoImage from '../assets/logo.png';
-import { API_BASE } from '../services/api';
+import { logoutUser } from '../services/api';
 
 
 // --- Icons (SVGs) for Professional Look ---
@@ -665,14 +665,20 @@ const LabAdminDashboard = () => {
     const countDelayed = () => appointments.filter(a => a.isDelayed || a.status === 'Pending').length;
     const countCompleted = () => appointments.filter(a => a.status === 'Completed').length;
 
-    const handleLogout = () => {
-        const doLogout = () => {
+    const handleLogout = async () => {
+        try {
+            await logoutUser();
+            sessionStorage.removeItem('auth_role');
+            sessionStorage.removeItem('username');
+            sessionStorage.removeItem('user_id');
+            sessionStorage.removeItem('email');
+            navigate('/admin/login');
+        } catch (err) {
+            console.error("Logout Error:", err);
+            // Fallback: clear storage and navigate anyway 
             sessionStorage.removeItem('auth_role');
             navigate('/admin/login');
-        };
-        fetch(`${API_BASE}/logout`, { method: 'POST', credentials: 'include' })
-            .then(doLogout)
-            .catch(doLogout);
+        }
     };
 
     // --- Actions ---
