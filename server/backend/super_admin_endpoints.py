@@ -271,21 +271,41 @@ def register_super_admin_endpoints(app):
             
             if user:
                 user_id = user['id']
-                # Delete from related tables (those without direct cascades or just to be safe)
+                
+                # Delete from related tables (wrapped in try-except in case tables are missing in some environments)
+                def safe_delete(table_name, user_id_col, val):
+                    try:
+                        cur.execute(f"DELETE FROM {table_name} WHERE {user_id_col} = %s", (val,))
+                    except Exception as e:
+                        print(f"Skipping {table_name} deletion: {e}")
+
                 # appointments (userId -> SET NULL in init_db, but we want to erase FULL record)
-                cur.execute("DELETE FROM appointments WHERE user_id = %s", (user_id,))
+                safe_delete("appointments", "user_id", user_id)
                 
-                # reports (ON DELETE CASCADE in init_db)
-                # lab_admin_profile (ON DELETE CASCADE in init_db)
-                # user_profile / user_profiles (ON DELETE CASCADE in setup scripts)
-                # prescriptions (ON DELETE SET NULL in init_db)
-                cur.execute("DELETE FROM prescriptions WHERE user_id = %s", (user_id,))
+                # prescriptions
+                safe_delete("prescriptions", "user_id", user_id)
+
+                # reports
+                safe_delete("reports", "patient_id", user_id)
                 
-                # Finally delete from users (triggers cascades)
+                # lab_admin_profile
+                safe_delete("lab_admin_profile", "user_id", user_id)
+
+                # user_profile / user_profiles
+                safe_delete("user_profile", "user_id", user_id)
+                safe_delete("user_profiles", "user_id", user_id)
+
+                # password_resets
+                safe_delete("password_resets", "user_id", user_id)
+                
+                # Finally delete from users (triggers cascades for any I missed)
                 cur.execute("DELETE FROM users WHERE id = %s", (user_id,))
             
             # Also check lab_admin_users (separate table sometimes)
-            cur.execute("DELETE FROM lab_admin_users WHERE email = %s", (email,))
+            try:
+                cur.execute("DELETE FROM lab_admin_users WHERE email = %s", (email,))
+            except Exception as e:
+                print(f"Skipping lab_admin_users deletion: {e}")
             
             conn.commit()
             return jsonify({"message": f"Successfully erased all records for {email}"}), 200
