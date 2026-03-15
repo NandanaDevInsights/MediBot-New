@@ -3717,15 +3717,6 @@ const LandingPage = () => {
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
                   {notifications.length > 0 && (
-                    <span className="badge-count" style={{
-                      background: 'var(--primary)',
-                      padding: '0.5rem 1rem',
-                      fontSize: '0.9rem'
-                    }}>
-                      {notifications.length} {notifications.length === 1 ? 'Notification' : 'Notifications'}
-                    </span>
-                  )}
-                  {notifications.length > 0 && (
                     <button
                       onClick={clearAllNotifications}
                       style={{
@@ -3755,7 +3746,6 @@ const LandingPage = () => {
                     if (notifs.length === 0) return null;
                     return (
                       <div key={label}>
-                        <div className="notif-group-header">{label}</div>
                         {notifs.map(n => {
                           // Detect bill notification
                           const isBill = n.message && n.message.startsWith('BILL_JSON:');

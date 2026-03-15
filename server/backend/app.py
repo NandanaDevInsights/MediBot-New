@@ -56,7 +56,7 @@ from validators import validate_email, validate_password
 
 import threading
 
-import google.generativeai as genai
+from google import genai
 
 from twilio.rest import Client
 
@@ -139,17 +139,12 @@ SMTP_USE_TLS = bool(int(os.environ.get("SMTP_USE_TLS", "0")))
 
 
 # Global Gemini Configuration
-
+client = None
 try:
-
     _api_key = os.environ.get("GEMINI_API_KEY")
-
     if _api_key:
-
-        genai.configure(api_key=_api_key)
-
+        client = genai.Client(api_key=_api_key)
 except Exception as e:
-
     print(f"[ERROR] Failed to configure Gemini: {e}")
 
 
@@ -8564,13 +8559,6 @@ def chat_bot():
 
         print(f"[CHAT] Received message: {user_message[:50]}...")
         
-        api_key = os.environ.get("GEMINI_API_KEY")
-        if not api_key:
-            print("[CHAT ERROR] GEMINI_API_KEY is missing in environment.")
-            return jsonify({"response": "Chat service is temporarily offline (Configuration Error)."}), 503
-
-        # Configure Gemini
-        genai.configure(api_key=api_key)
 
         # Build prompt and history
         system_instruction = (
@@ -8578,37 +8566,33 @@ def chat_bot():
             "Help users find labs, book tests, and find reports. Be professional and friendly."
         )
 
-        formatted_history = [
-            {"role": "user", "parts": [f"SYSTEM: {system_instruction}. Acknowledge and introduce yourself."]},
-            {"role": "model", "parts": ["Hello! I am MediBot, your advanced healthcare assistant. How can I help you today?"]}
-        ]
-
+        formatted_history = []
         for msg in history:
             text = msg.get('text', '')
             if not text or "Welcome to MediBot" in text: continue
             role = "user" if msg.get('type') == 'user' else "model"
-            formatted_history.append({"role": role, "parts": [text]})
+            formatted_history.append({"role": role, "parts": [{"text": text}]})
 
         final_history = []
         if formatted_history:
             prev_role = None
             for item in formatted_history:
                 if item['role'] == prev_role:
-                    final_history[-1]['parts'][0] += "\n" + item['parts'][0]
+                    final_history[-1]['parts'][0]['text'] += "\n" + item['parts'][0]['text']
                 else:
                     final_history.append(item)
                     prev_role = item['role']
 
-        while final_history and final_history[-1]['role'] == 'user':
-            final_history.pop()
-
         try:
-            model = genai.GenerativeModel('gemini-1.5-flash')
-            if not final_history:
-                response = model.generate_content(f"{system_instruction}\n\nUser: {user_message}")
-            else:
-                chat = model.start_chat(history=final_history)
-                response = chat.send_message(user_message)
+            if not client:
+                return jsonify({"response": "AI service currently unavailable."}), 503
+
+            # Use simple generation for now as it's more robust
+            response = client.models.generate_content(
+                model='gemini-1.5-flash',
+                contents=final_history + [{"role": "user", "parts": [{"text": user_message}]}],
+                config={'system_instruction': system_instruction}
+            )
             
             if response and hasattr(response, 'text') and response.text:
                 return jsonify({"response": response.text}), 200
