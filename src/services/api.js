@@ -169,5 +169,28 @@ export const deleteUserRecord = async (email) => {
   })
 }
 
+// --- Booking & Payment Endpoints ---
+export const createBooking = async (payload, options = {}) => {
+  return fetchWithLoading(`${API_BASE}/bookings`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(payload),
+  }, options)
+}
 
+export const createPaymentOrder = async (payload, options = {}) => {
+  return fetchWithLoading(`${API_BASE}/create-payment-order`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }, options)
+}
 
+export const verifyPayment = async (payload, options = {}) => {
+  return fetchWithLoading(`${API_BASE}/verify-payment`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }, options)
+}

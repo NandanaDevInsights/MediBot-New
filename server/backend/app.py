@@ -8560,8 +8560,6 @@ def verify_payment():
                 amount, 
                 razorpay_payment_id
             ))
-            conn.commit()
-
             # Insert bill notification for the user
             bill_user_id = session.get("user_id")
             if bill_user_id:
@@ -8580,14 +8578,13 @@ def verify_payment():
                         "payment_time": datetime.now().strftime("%H:%M")
                     })
                     bill_msg = f"BILL_JSON:{bill_data}"
-                    cur2 = conn.cursor()
-                    cur2.execute("INSERT INTO notifications (user_id, message) VALUES (%s, %s)", (bill_user_id, bill_msg))
-                    conn.commit()
-                    cur2.close()
-                    print(f"[INFO] Bill notification inserted for user {bill_user_id}")
+                    cur.execute("INSERT INTO notifications (user_id, message) VALUES (%s, %s)", (bill_user_id, bill_msg))
+                    print(f"[INFO] Bill notification queued for user {bill_user_id}")
                 except Exception as bn_err:
-                    print(f"[WARN] Failed to insert bill notification: {bn_err}")
+                    print(f"[WARN] Failed to queue bill notification: {bn_err}")
 
+            # Commit all payment-related operations at once
+            conn.commit()
             cur.close()
 
             print(f"[INFO] Payment details saved for order {razorpay_order_id}")
@@ -8668,32 +8665,18 @@ def create_user_booking():
         """
         
         cur.execute(query, (user_id, patient_name, lab_name, date_str, time_str, tests_str, location, payment_status))
-        conn.commit()
-
         new_id = cur.lastrowid
 
-        
-
         # Add Notification to Super Admin (Platform-wide Alert)
-
         try:
-
             notif_query = """
-
                 INSERT INTO admin_notification 
-
                 (title, description, notification_type, icon) 
-
                 VALUES (%s, %s, 'info', '📅')
-
             """
-
             notif_title = f"New Appointment: {patient_name}"
-
             notif_desc = f"New booking for {lab_name} on {date_str} at {time_str}. Test: {tests_str}"
-
             cur.execute(notif_query, (notif_title, notif_desc))
-            conn.commit()
 
             # Add revenue notification if paid
             if payment_status == 'Paid':
@@ -8702,14 +8685,12 @@ def create_user_booking():
                 rev_title = f"Revenue Generated: {lab_name}"
                 rev_desc = f"Revenue of {amount_str} received from {patient_name} for booking at {lab_name}."
                 cur.execute(rev_query, (rev_title, rev_desc))
-                conn.commit()
 
         except Exception as ne:
+            print(f"[ERROR] Failed to queue admin notification: {ne}")
 
-            print(f"[ERROR] Failed to insert admin notification: {ne}")
-
-
-
+        # Commit all booking operations at once
+        conn.commit()
         cur.close()
 
         # Try to send WhatsApp notification

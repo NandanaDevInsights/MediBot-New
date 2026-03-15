@@ -16,7 +16,7 @@ import lab7 from '../assets/lab7.png';
 import lab8 from '../assets/lab8.png';
 
 import './LandingPage.css';
-import { getUserProfile, getUserReports, updateUserProfile, getUserNotifications, API_BASE } from '../services/api';
+import { getUserProfile, getUserReports, updateUserProfile, getUserNotifications, API_BASE, createBooking, createPaymentOrder, verifyPayment } from '../services/api';
 
 // --- Icon Components ---
 const IconHome = ({ size = 20 }) => (
@@ -1198,12 +1198,10 @@ const LandingPage = () => {
   };
 
   const handleConfirmBooking = async () => {
-    setIsBooking(true);
     try {
       const username = sessionStorage.getItem('username');
       if (!username) {
         alert('Please login to book tests');
-        setIsBooking(false);
         return;
       }
 
@@ -1211,32 +1209,20 @@ const LandingPage = () => {
         username,
         labName: selectedLab?.name || '',
         labLocation: selectedLab?.location || '',
-
         tests: selectedTests.map(t => typeof t === 'object' ? t.name : t),
         date: bookingDate,
         time: bookingTime,
         paymentMethod: paymentMethod,
-
         totalAmount: selectedTests.reduce((total, test) => total + getTestPrice(test.name || test, selectedLab?.id, labSettings?.tests, selectedLab.name), 0)
       };
 
-      const response = await fetch(`${API_BASE}/bookings`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(bookingData)
-      });
-
-      if (response.ok) {
-        showToast('Booking confirmed successfully!', 'success');
-      } else {
-        showToast('Booking failed. Please try again.', 'error');
-      }
+      const result = await createBooking(bookingData);
+      showToast('Booking confirmed successfully!', 'success');
+      return result;
     } catch (error) {
       console.error('Booking error:', error);
-      showToast('Booking failed. Please try again.', 'error');
-    } finally {
-      setIsBooking(false);
+      showToast(error.message || 'Booking failed. Please try again.', 'error');
+      throw error;
     }
   };
 
@@ -1299,26 +1285,15 @@ const LandingPage = () => {
       const formattedTests = selectedTests.map(t => typeof t === 'object' ? t.name : t).join(', ');
 
       // Step 1: Create order on backend
-      const orderResponse = await fetch(`${API_BASE}/create-payment-order`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: totalAmount,
-          notes: {
-            lab: selectedLab?.name,
-            tests: formattedTests,
-            date: bookingDate,
-            time: bookingTime
-          }
-        })
+      const orderData = await createPaymentOrder({
+        amount: totalAmount,
+        notes: {
+          lab: selectedLab?.name,
+          tests: formattedTests,
+          date: bookingDate,
+          time: bookingTime
+        }
       });
-
-      if (!orderResponse.ok) {
-        const errorData = await orderResponse.json().catch(() => ({}));
-        throw new Error(errorData.error || "Failed to create payment order.");
-      }
-
-      const orderData = await orderResponse.json();
 
       // Step 2: Open Razorpay Checkout
       const options = {
@@ -1329,47 +1304,36 @@ const LandingPage = () => {
         description: "Medical Laboratory Booking",
         order_id: orderData.order_id,
         handler: async (response) => {
-          setIsBooking(true);
           try {
             const patientName = sessionStorage.getItem('username') || 'Guest';
 
             // Verify payment on backend
-            const verifyRes = await fetch(`${API_BASE}/verify-payment`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_signature: response.razorpay_signature,
-                amount: totalAmount,
-                lab_name: selectedLab?.name,
-                patient_name: patientName,
-                tests: formattedTests,
-                appointment_date: bookingDate,
-                appointment_time: bookingTime
-              })
+            await verifyPayment({
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+              amount: totalAmount,
+              lab_name: selectedLab?.name,
+              patient_name: patientName,
+              tests: formattedTests,
+              appointment_date: bookingDate,
+              appointment_time: bookingTime
             });
 
-            if (verifyRes.ok) {
-              // Payment verified successfully
-              setPaymentMethod('Online');
-              setPaymentStatus('Paid');
+            // Payment verified successfully
+            setPaymentMethod('Online');
+            setPaymentStatus('Paid');
 
-              // Confirm booking with updated status
-              await handleConfirmBooking();
+            // Confirm booking with updated status
+            await handleConfirmBooking();
 
-              setShowPaymentModal(false);
-              setShowFeedbackModal(true);
-              showToast("✓ Payment successful! Booking confirmed.", 'success');
-            } else {
-              const errorData = await verifyRes.json().catch(() => ({}));
-              setPaymentStep('select');
-              showToast(errorData.message || "Payment verification failed. Please contact support.", 'error');
-            }
+            setShowPaymentModal(false);
+            setShowFeedbackModal(true);
+            showToast("✓ Payment successful! Booking confirmed.", 'success');
           } catch (error) {
             console.error("Payment verification error:", error);
             setPaymentStep('select');
-            showToast("Error verifying payment. Please contact support.", 'error');
+            showToast(error.message || "Error verifying payment. Please contact support.", 'error');
           }
         },
         prefill: {
