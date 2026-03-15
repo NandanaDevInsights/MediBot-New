@@ -2799,7 +2799,7 @@ const LandingPage = () => {
               onClick={() => { setShowNotifications(true); setShowReminders(false); setShowMyBookingsModal(false); setShowReportsModal(false); setShowProfileModal(false); }}
             >
               <IconBell />
-              <span>Notifications {notifications.filter(n => !n.isRead).length > 0 && `(${notifications.filter(n => !n.isRead).length})`}</span>
+              <span>Notifications {notifications.length > 0 && `(${notifications.length})`}</span>
             </button>
 
 
@@ -3716,13 +3716,13 @@ const LandingPage = () => {
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                  {notifications.filter(n => !n.isRead).length > 0 && (
+                  {notifications.length > 0 && (
                     <span className="badge-count" style={{
                       background: 'var(--primary)',
                       padding: '0.5rem 1rem',
                       fontSize: '0.9rem'
                     }}>
-                      {notifications.filter(n => !n.isRead).length} New
+                      {notifications.length} {notifications.length === 1 ? 'Notification' : 'Notifications'}
                     </span>
                   )}
                   {notifications.length > 0 && (

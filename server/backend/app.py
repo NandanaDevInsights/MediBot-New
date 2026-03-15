@@ -2290,6 +2290,11 @@ def ensure_notifications_table():
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         """)
+        # Migration: Ensure is_read column exists for older tables
+        try:
+            cur.execute("ALTER TABLE notifications ADD COLUMN is_read BOOLEAN DEFAULT FALSE AFTER message")
+        except:
+            pass # Probably exists
         conn.commit()
     except Exception as e:
         print(f"[WARNING] Notifications table check failed: {e}")
@@ -7274,6 +7279,7 @@ def mark_one_notification_read(id):
         cur = conn.cursor()
         cur.execute("UPDATE notifications SET is_read=1 WHERE id=%s AND user_id=%s", (id, user_id))
         conn.commit()
+        print(f"[DEBUG] Notification {id} marked as read for user {user_id}. Rows affected: {cur.rowcount}")
         return jsonify({"message": "Notification marked as read"}), 200
     except Exception as e:
         print(f"[ERROR] Mark read failed: {e}")
