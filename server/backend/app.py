@@ -1552,6 +1552,75 @@ def save_admin_profile():
 
 
 
+@app.route("/api/logout", methods=["POST", "GET"])
+def logout_user():
+    """Clear the server-side session so the browser cookie is invalidated."""
+    session.clear()
+    return jsonify({"message": "Logged out successfully."}), 200
+
+
+@app.route("/api/user/notifications", methods=["GET"])
+def get_user_notifications():
+    """Return the latest notifications for the logged-in user."""
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify([]), 401
+
+    conn = get_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT id, message, created_at
+            FROM notifications
+            WHERE user_id = %s
+            ORDER BY created_at DESC
+            LIMIT 50
+            """,
+            (user_id,)
+        )
+        rows = cur.fetchall()
+        cur.close()
+        result = []
+        for row in rows:
+            nid, message, created_at = row
+            result.append({
+                "id": nid,
+                "message": message,
+                "created_at": str(created_at) if created_at else None
+            })
+        return jsonify(result), 200
+    except Exception as e:
+        print(f"[ERROR] get_user_notifications: {e}")
+        return jsonify([]), 500
+    finally:
+        conn.close()
+
+
+@app.route("/api/user/notifications/<int:notif_id>", methods=["DELETE"])
+def delete_user_notification(notif_id):
+    """Delete a single notification by ID for the logged-in user."""
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"message": "Unauthorized"}), 401
+
+    conn = get_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            "DELETE FROM notifications WHERE id = %s AND user_id = %s",
+            (notif_id, user_id)
+        )
+        conn.commit()
+        cur.close()
+        return jsonify({"message": "Notification deleted."}), 200
+    except Exception as e:
+        print(f"[ERROR] delete_user_notification: {e}")
+        return jsonify({"message": "Failed to delete notification."}), 500
+    finally:
+        conn.close()
+
+
 @app.post("/api/forgot-password")
 
 def forgot_password():

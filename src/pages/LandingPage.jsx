@@ -2248,9 +2248,20 @@ const LandingPage = () => {
   const handleLogout = () => {
     const confirm = window.confirm("Are you sure you want to logout?");
     if (confirm) {
-      sessionStorage.removeItem('user_location_coords');
-      sessionStorage.removeItem('auth_role');
-      navigate('/login');
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const doLogout = () => {
+        // Clear ALL session keys set at login
+        sessionStorage.removeItem('auth_role');
+        sessionStorage.removeItem('user_location_coords');
+        sessionStorage.removeItem('username');
+        sessionStorage.removeItem('user_id');
+        sessionStorage.removeItem('email');
+        navigate('/login');
+      };
+      // Call backend to clear Flask session cookie, then redirect
+      fetch(`${API_BASE_URL}/logout`, { method: 'POST', credentials: 'include' })
+        .then(doLogout)
+        .catch(doLogout);
     }
   };
 
