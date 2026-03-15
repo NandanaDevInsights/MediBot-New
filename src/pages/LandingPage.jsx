@@ -1631,7 +1631,7 @@ const LandingPage = () => {
     // Fetch Notifications
     const fetchNotes = async () => {
       try {
-        const notes = await getUserNotifications();
+        const notes = await getUserNotifications({ showLoader: false });
         if (notes) setNotifications(notes);
       } catch (e) { console.error(e); }
     };

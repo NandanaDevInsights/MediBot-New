@@ -15,13 +15,13 @@ const parseResponse = async (response) => {
 /**
  * Standardized fetch wrapper that includes global loading state management
  */
-const fetchWithLoading = async (url, options = {}) => {
-  startGlobalLoading();
+const fetchWithLoading = async (url, options = {}, { showLoader = true } = {}) => {
+  if (showLoader) startGlobalLoading();
   try {
     const response = await fetch(url, options);
     return await parseResponse(response);
   } finally {
-    stopGlobalLoading();
+    if (showLoader) stopGlobalLoading();
   }
 };
 
@@ -102,62 +102,63 @@ export const resetPassword = async (payload) => {
 }
 
 
-export const getUserProfile = async () => {
+export const getUserProfile = async (options = {}) => {
   return fetchWithLoading(`${API_BASE}/profile`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-  })
+  }, options)
 }
 
-export const updateUserProfile = async (payload) => {
+export const updateUserProfile = async (payload, options = {}) => {
   return fetchWithLoading(`${API_BASE}/profile`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
     body: JSON.stringify(payload),
-  })
+  }, options)
 }
 
-export const getUserReports = async () => {
+export const getUserReports = async (options = {}) => {
   return fetchWithLoading(`${API_BASE}/reports`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-  })
+  }, options)
 }
 
-export const getUserNotifications = async () => {
+export const getUserNotifications = async (options = {}) => {
   return fetchWithLoading(`${API_BASE}/user/notifications`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-  })
+  }, options)
 }
 
 // --- Super Admin Endpoints ---
-export const getSuperAdminStats = async () => {
-  return fetchWithLoading(`${API_BASE}/super-admin/dashboard-stats`, { credentials: 'include' })
+export const getSuperAdminStats = async (options = {}) => {
+  return fetchWithLoading(`${API_BASE}/super-admin/dashboard-stats`, { credentials: 'include' }, options)
 }
 
-export const getSuperAdminLabs = async () => {
-  return fetchWithLoading(`${API_BASE}/super-admin/labs-performance`, { credentials: 'include' })
+export const getSuperAdminLabs = async (options = {}) => {
+  return fetchWithLoading(`${API_BASE}/super-admin/labs-performance`, { credentials: 'include' }, options)
 }
 
-export const getSuperAdminBookings = async () => {
-  return fetchWithLoading(`${API_BASE}/super-admin/all-bookings`, { credentials: 'include' })
+export const getSuperAdminBookings = async (options = {}) => {
+  return fetchWithLoading(`${API_BASE}/super-admin/all-bookings`, { credentials: 'include' }, options)
 }
 
-export const getSuperAdminUsers = async () => {
-  return fetchWithLoading(`${API_BASE}/super-admin/all-users`, { credentials: 'include' })
+export const getSuperAdminUsers = async (options = {}) => {
+  return fetchWithLoading(`${API_BASE}/super-admin/all-users`, { credentials: 'include' }, options)
 }
 
-export const getSuperAdminChartData = async () => {
-  return fetchWithLoading(`${API_BASE}/super-admin/chart-data`, { credentials: 'include' })
+export const getSuperAdminChartData = async (options = {}) => {
+  return fetchWithLoading(`${API_BASE}/super-admin/chart-data`, { credentials: 'include' }, options)
 }
 
-export const getSuperAdminNotifications = async () => {
-  return fetchWithLoading(`${API_BASE}/super-admin/notifications`, { credentials: 'include' })
+export const getSuperAdminNotifications = async (options = {}) => {
+  return fetchWithLoading(`${API_BASE}/super-admin/notifications`, { credentials: 'include' }, options)
 }
+
 
 

@@ -699,7 +699,7 @@ const SuperAdminDashboard = () => {
 
         // Auto-refresh notifications for Super Admin every 30 seconds
         const pollInterval = setInterval(() => {
-            getSuperAdminNotifications()
+            getSuperAdminNotifications({ showLoader: false })
                 .then(res => {
                     if (Array.isArray(res) && res.length > 0) {
                         const mapped = res.map(n => ({
