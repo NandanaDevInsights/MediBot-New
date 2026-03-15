@@ -250,3 +250,47 @@ def register_super_admin_endpoints(app):
         finally:
 
             conn.close()
+
+    @app.delete("/api/super-admin/delete-user")
+    def delete_user():
+        if not check_super_admin():
+            return jsonify({"message": "Unauthorized"}), 403
+            
+        data = request.json
+        email = data.get("email")
+        if not email:
+            return jsonify({"message": "Email is required"}), 400
+            
+        conn = get_connection()
+        try:
+            cur = conn.cursor(dictionary=True)
+            
+            # Find user in users table
+            cur.execute("SELECT id FROM users WHERE email = %s", (email,))
+            user = cur.fetchone()
+            
+            if user:
+                user_id = user['id']
+                # Delete from related tables (those without direct cascades or just to be safe)
+                # appointments (userId -> SET NULL in init_db, but we want to erase FULL record)
+                cur.execute("DELETE FROM appointments WHERE user_id = %s", (user_id,))
+                
+                # reports (ON DELETE CASCADE in init_db)
+                # lab_admin_profile (ON DELETE CASCADE in init_db)
+                # user_profile / user_profiles (ON DELETE CASCADE in setup scripts)
+                # prescriptions (ON DELETE SET NULL in init_db)
+                cur.execute("DELETE FROM prescriptions WHERE user_id = %s", (user_id,))
+                
+                # Finally delete from users (triggers cascades)
+                cur.execute("DELETE FROM users WHERE id = %s", (user_id,))
+            
+            # Also check lab_admin_users (separate table sometimes)
+            cur.execute("DELETE FROM lab_admin_users WHERE email = %s", (email,))
+            
+            conn.commit()
+            return jsonify({"message": f"Successfully erased all records for {email}"}), 200
+        except Exception as e:
+            print(f"Delete User Error: {e}")
+            return jsonify({"message": str(e)}), 500
+        finally:
+            conn.close()

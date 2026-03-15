@@ -160,5 +160,14 @@ export const getSuperAdminNotifications = async (options = {}) => {
   return fetchWithLoading(`${API_BASE}/super-admin/notifications`, { credentials: 'include' }, options)
 }
 
+export const deleteUserRecord = async (email) => {
+  return fetchWithLoading(`${API_BASE}/super-admin/delete-user`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ email })
+  })
+}
+
 
 

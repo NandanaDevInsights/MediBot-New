@@ -9,7 +9,8 @@ import {
     getSuperAdminBookings,
     getSuperAdminUsers,
     getSuperAdminChartData,
-    getSuperAdminNotifications
+    getSuperAdminNotifications,
+    deleteUserRecord
 } from '../services/api';
 
 // --- Icon System (SVG Components) ---
@@ -2044,10 +2045,16 @@ const SuperAdminDashboard = () => {
     const renderUsers = () => {
         if (loading) return <div className="section-content">Accessing global identity database...</div>;
 
-        const handleUserAction = (type, u) => {
+        const handleUserAction = async (type, u) => {
             if (type === 'delete') {
                 if (window.confirm(`Are you sure you want to permanently remove user ${u.name}?`)) {
-                    setUsersList(usersList.filter(user => user.email !== u.email));
+                    try {
+                        await deleteUserRecord(u.email);
+                        setUsersList(usersList.filter(user => user.email !== u.email));
+                        // Show success feedback if needed, the global loader handles the wait
+                    } catch (err) {
+                        alert(`Failed to erase record: ${err.message}`);
+                    }
                 }
             } else if (type === 'edit') {
                 alert(`Redirecting to profile management for ${u.name}...`);
