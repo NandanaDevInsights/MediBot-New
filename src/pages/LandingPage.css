@@ -2,6 +2,7 @@
 
 /* --- Modern Medical Theme Variables (Dark/Blue Theme) --- */
 :root {
+  scroll-behavior: smooth;
   /* Brand Colors - Light Blue & White Theme */
   --primary: #0ea5e9;
   /* Sky Blue 500 */
@@ -1358,43 +1359,146 @@ body {
 
 /* Footer (Dark Blue) */
 .main-footer {
-  padding: 5rem 2rem 2rem;
-  background: var(--text-main);
-  /* Deep Blue */
+  padding: 6rem 2rem 0;
+  background: #0f172a; /* Slate 900 */
   color: white;
   position: relative;
   overflow: hidden;
 }
 
-.footer-links-group a {
-  color: #94a3b8;
-  text-decoration: none;
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 4rem;
+  padding-bottom: 4rem;
 }
 
-.footer-links-group a:hover {
-  color: var(--primary);
+.footer-brand .brand-logo {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin-left: 10px;
+}
+
+.footer-links-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .footer-links-group h4 {
-  color: white;
+  font-size: 1.1rem;
   font-weight: 700;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
+  color: white;
 }
 
-.brand-logo {
+.footer-links-group a {
+  color: #94a3b8;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  width: fit-content;
+}
+
+.footer-links-group a:hover {
   color: white;
+  transform: translateX(5px);
+}
+
+.social-icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.social-icon-btn:hover {
+  background: var(--primary);
+  color: white;
+  transform: translateY(-3px);
+  border-color: var(--primary);
+  box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.3);
 }
 
 .footer-bottom {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  margin-top: 3rem;
-  padding-top: 2rem;
-  text-align: center;
-  color: #64748b;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 2rem 0;
+  background: #020617; /* Slate 950 */
 }
 
-.footer-brand p {
-  color: #94a3b8;
+.footer-bottom-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.footer-legal-links {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.footer-legal-links span {
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.footer-legal-links span:hover {
+  color: #cbd5e1;
+}
+
+.dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #334155;
+}
+
+@media (max-width: 1024px) {
+  .footer-content {
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .footer-content {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    text-align: center;
+  }
+  
+  .footer-links-group {
+    align-items: center;
+  }
+  
+  .footer-bottom-content {
+    flex-direction: column;
+    gap: 1.5rem;
+    text-align: center;
+  }
+  
+  .social-links {
+    justify-content: center;
+  }
+  
+  .footer-links-group a:hover {
+    transform: none;
+    color: white;
+  }
 }
 
 /* Report Tabs */

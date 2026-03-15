@@ -1699,14 +1699,32 @@ const LandingPage = () => {
 
   const isAnyModalOpen = showNotifications || showReminders || showMyBookingsModal || showReportsModal || showProfileModal || showBookingModal || showViewerModal;
 
+  // Navigation Helper
+  const scrollToSection = (id) => {
+    const element = document.getElementById(id);
+    if (element) {
+      const offset = 80; // Navbar height
+      const bodyRect = document.body.getBoundingClientRect().top;
+      const elementRect = element.getBoundingClientRect().top;
+      const elementPosition = elementRect - bodyRect;
+      const offsetPosition = elementPosition - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+      
+      // Close any open modals when navigating
+      setShowNotifications(false);
+      setShowReminders(false);
+      setShowMyBookingsModal(false);
+      setShowReportsModal(false);
+      setShowProfileModal(false);
+    }
+  };
+
   const handleHomeClick = () => {
-    setShowNotifications(false);
-    setShowReminders(false);
-    setShowMyBookingsModal(false);
-    setShowReportsModal(false);
-    setShowProfileModal(false);
-    setShowBookingModal(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToSection('hero');
   };
 
   // Initial Load - Check Location
@@ -2792,9 +2810,21 @@ const LandingPage = () => {
               <IconHome />
               <span>Home</span>
             </button>
-            {/* Notifications & Reminders - Only visible if location entered */}
-            {/* Notifications & Reminders - Always visible */}
+            
+            <button className="nav-item-btn" onClick={() => scrollToSection('laboratories')}>
+              <IconSearch size={18} />
+              <span>Services</span>
+            </button>
 
+            <button className="nav-item-btn" onClick={() => scrollToSection('why-choose')}>
+              <IconShield size={18} />
+              <span>Features</span>
+            </button>
+
+            <button className="nav-item-btn" onClick={() => scrollToSection('reviews')}>
+              <IconStar size={18} />
+              <span>Testimonials</span>
+            </button>
 
             <button
               className="nav-item-btn"
@@ -2831,8 +2861,8 @@ const LandingPage = () => {
               </div>
             </button>
           </div>
-        </div >
-      </nav >
+        </div>
+      </nav>
 
       {/* Reports Modal */}
 
@@ -4082,7 +4112,7 @@ const LandingPage = () => {
       }
 
       {/* 2. Hero Section - Split Layout */}
-      <section className="hero-section-split">
+      <section id="hero" className="hero-section-split">
         <div className="hero-left">
           {/* Decorative Molecule Background */}
           <img
@@ -4139,7 +4169,7 @@ const LandingPage = () => {
       </section>
 
       {/* 3. Filters & Labs List */}
-      <main className="main-content" ref={labsSectionRef}>
+      <main id="laboratories" className="main-content" ref={labsSectionRef}>
         <div className="section-header-card">
           <h2>Featured Laboratories</h2>
           <div className="header-actions">
@@ -4236,7 +4266,7 @@ const LandingPage = () => {
       </main >
 
       {/* 6. Why Choose MediBot Section */}
-      < section className="why-choose-section" >
+      < section id="why-choose" className="why-choose-section" >
         <div style={{ maxWidth: '1200px', margin: '0 auto', textAlign: 'center' }}>
           <h2 className="section-title">Why Choose MediBot?</h2>
           <p className="section-subtitle">We ensure the best healthcare experience with speed, accuracy, and trust.</p>
@@ -4298,30 +4328,44 @@ const LandingPage = () => {
 
       {/* 5. Footer */}
       {/* 10. Footer */}
+      {/* 10. Footer */}
       <footer className="main-footer">
         <div className="footer-content">
           <div className="footer-brand">
-            <span className="brand-logo">MediBot</span>
-            <p>Smart healthcare for modern lives.</p>
-            <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem' }}>
-              {/* Social Placeholders */}
-              <div style={{ width: 32, height: 32, background: 'rgba(255,255,255,0.1)', borderRadius: '50%' }}></div>
-              <div style={{ width: 32, height: 32, background: 'rgba(255,255,255,0.1)', borderRadius: '50%' }}></div>
-              <div style={{ width: 32, height: 32, background: 'rgba(255,255,255,0.1)', borderRadius: '50%' }}></div>
+            <div className="logo-section" style={{ marginBottom: '1rem' }}>
+              <img src={logoImage} alt="MediBot Logo" style={{ width: 40, height: 'auto' }} />
+              <span className="brand-logo" style={{ color: 'white', fontWeight: '800' }}>MediBot</span>
+            </div>
+            <p style={{ opacity: 0.8, lineHeight: '1.6', marginBottom: '1.5rem' }}>
+              Revolutionizing healthcare with AI-driven diagnostics and seamless laboratory booking. Your health, our priority.
+            </p>
+            <div className="social-links" style={{ display: 'flex', gap: '0.75rem' }}>
+              <a href="#" className="social-icon-btn" title="Facebook">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+              </a>
+              <a href="#" className="social-icon-btn" title="Twitter">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>
+              </a>
+              <a href="#" className="social-icon-btn" title="Instagram">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+              </a>
+              <a href="#" className="social-icon-btn" title="LinkedIn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+              </a>
             </div>
           </div>
 
           <div className="footer-links-group">
-            <h4>Company</h4>
-            <a href="#">About MediBot</a>
-            <a href="#">Partner Labs</a>
-            <a href="#">Careers</a>
-            <a href="#">Contact</a>
+            <h4>Platform</h4>
+            <a href="#hero" onClick={(e) => { e.preventDefault(); scrollToSection('hero'); }}>Home</a>
+            <a href="#laboratories" onClick={(e) => { e.preventDefault(); scrollToSection('laboratories'); }}>Find Labs</a>
+            <a href="#why-choose" onClick={(e) => { e.preventDefault(); scrollToSection('why-choose'); }}>Features</a>
+            <a href="#reviews" onClick={(e) => { e.preventDefault(); scrollToSection('reviews'); }}>Testimonials</a>
           </div>
 
           <div className="footer-links-group">
             <h4>Services</h4>
-            <a href="#">Book Tests</a>
+            <a href="#">Blood Tests</a>
             <a href="#">Health Checkups</a>
             <a href="#">Home Collection</a>
             <a href="#">Corporate Health</a>
@@ -4330,13 +4374,22 @@ const LandingPage = () => {
           <div className="footer-links-group">
             <h4>Support</h4>
             <a href="#">Help Center</a>
-            <a href="#">Privacy Policy</a>
             <a href="#">Terms of Service</a>
-            <a href="#">Report Issue</a>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Contact Us</a>
           </div>
         </div>
         <div className="footer-bottom">
-          <p>© 2026 MediBot Healthcare Inc. All rights reserved.</p>
+          <div className="footer-bottom-content">
+            <p>© 2026 MediBot Healthcare Inc. All rights reserved.</p>
+            <div className="footer-legal-links">
+              <span>Privacy</span>
+              <span className="dot"></span>
+              <span>Terms</span>
+              <span className="dot"></span>
+              <span>Cookies</span>
+            </div>
+          </div>
         </div>
       </footer>
       {
