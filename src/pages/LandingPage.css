@@ -774,14 +774,29 @@ body {
   font-weight: 700;
 }
 
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
 .tags span {
-  font-size: 0.7rem;
-  padding: 0.25rem 0.6rem;
-  background: #f1f5f9;
-  color: var(--text-body);
+  font-size: 0.75rem;
+  padding: 0.35rem 0.75rem;
+  background: #f0f9ff;
+  color: var(--primary-dark);
   border-radius: 99px;
   font-weight: 600;
   border: 1px solid var(--border-light);
+  white-space: nowrap;
+  transition: var(--transition);
+}
+
+.tags span:hover {
+  background: var(--primary-light);
+  transform: translateY(-1px);
 }
 
 .price-row {
