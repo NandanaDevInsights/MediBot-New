@@ -1019,11 +1019,10 @@ def login_user():
         # Add notification for admin login
         try:
             cur_notif = conn.cursor()
-            notif_query = "INSERT INTO admin_notification (title, description, notification_type, icon) VALUES (%s, %s, 'info', %s)"
+            notif_query = "INSERT INTO admin_notification (title, description) VALUES (%s, %s)"
             notif_title = f"Admin Login: {email}"
             notif_desc = f"{role} {email} logged in successfully."
-            icon = '🛡️' if role == 'SUPER_ADMIN' else '🏢'
-            cur_notif.execute(notif_query, (notif_title, notif_desc, icon))
+            cur_notif.execute(notif_query, (notif_title, notif_desc))
             conn.commit()
             cur_notif.close()
         except Exception as ne:
@@ -1381,10 +1380,10 @@ def verify_otp():
         # Add notification for patient login
         try:
             cur_notif = conn.cursor()
-            notif_query = "INSERT INTO admin_notification (lab_id, title, description, notification_type, icon) VALUES (%s, %s, %s, 'info', '👤')"
+            notif_query = "INSERT INTO admin_notification (title, description) VALUES (%s, %s)"
             notif_title = f"Patient Login: {db_username}"
             notif_desc = f"Patient {db_username} ({email}) logged in successfully."
-            cur_notif.execute(notif_query, (0, notif_title, notif_desc))
+            cur_notif.execute(notif_query, (notif_title, notif_desc))
             conn.commit()
             cur_notif.close()
         except Exception as ne:
@@ -8815,11 +8814,7 @@ def create_user_booking():
 
         # Add Notification to Super Admin (Platform-wide Alert)
         try:
-            notif_query = """
-                INSERT INTO admin_notification 
-                (title, description, notification_type, icon) 
-                VALUES (%s, %s, 'info', '📅')
-            """
+            notif_query = "INSERT INTO admin_notification (title, description) VALUES (%s, %s)"
             notif_title = f"New Appointment: {patient_name}"
             notif_desc = f"New booking for {lab_name} on {date_str} at {time_str}. Test: {tests_str}"
             cur.execute(notif_query, (notif_title, notif_desc))
@@ -8834,6 +8829,29 @@ def create_user_booking():
 
         except Exception as ne:
             print(f"[ERROR] Failed to queue admin notification: {ne}")
+
+        # Add bill/booking notification for the PATIENT
+        try:
+            import json as _json
+            bill_data = _json.dumps({
+                "type": "bill",
+                "patient_name": patient_name,
+                "lab_name": lab_name,
+                "tests_booked": tests_str,
+                "payment_amount": total_amount if total_amount else "To be paid at lab",
+                "payment_method": payment_method or "Pay at Lab",
+                "payment_status": payment_status,
+                "booking_id": f"A-{new_id}",
+                "payment_date": date_str,
+                "payment_time": time_str
+            })
+            bill_msg = f"BILL_JSON:{bill_data}"
+            cur2 = conn.cursor()
+            cur2.execute("INSERT INTO notifications (user_id, message) VALUES (%s, %s)", (user_id, bill_msg))
+            cur2.close()
+            print(f"[INFO] Booking bill notification queued for user {user_id}")
+        except Exception as bn_err:
+            print(f"[WARN] Failed to queue booking bill notification: {bn_err}")
 
         # Commit all booking operations at once
         conn.commit()
