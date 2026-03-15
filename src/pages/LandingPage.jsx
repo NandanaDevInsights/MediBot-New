@@ -1123,10 +1123,10 @@ const LandingPage = () => {
     setToasts(prev => prev.filter(t => t.id !== id));
   };
 
-  const markNotificationRead = async (id) => {
+  const markNotificationRead = async (id, showLoader = true) => {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
     try {
-      await markSingleNotificationAsRead(id);
+      await markSingleNotificationAsRead(id, { showLoader });
     } catch (e) {
       console.error("Error marking notification as read:", e);
     }
@@ -3864,7 +3864,7 @@ const LandingPage = () => {
                                   <div className="notif-actions">
                                     <button
                                       className="notif-btn notif-btn-primary"
-                                      onClick={() => { setSelectedBillNotification(billData); setShowBillNotificationModal(true); markNotificationRead(n.id); }}
+                                      onClick={() => { setSelectedBillNotification({ ...billData, notificationId: n.id }); setShowBillNotificationModal(true); }}
                                     >
                                       View Bill
                                     </button>
@@ -5437,8 +5437,8 @@ const LandingPage = () => {
       {showBillNotificationModal && selectedBillNotification && (() => {
         const b = selectedBillNotification;
         return (
-          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, backdropFilter: 'blur(4px)' }}>
-            <div style={{ background: 'white', padding: '40px', borderRadius: '24px', width: '450px', maxWidth: '95vw', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', position: 'relative' }}>
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999 }}>
+            <div style={{ background: 'white', padding: '40px', borderRadius: '24px', width: '450px', maxWidth: '95vw', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', position: 'relative', animation: 'fadeIn 0.2s ease-out' }}>
               <div style={{ textAlign: 'center', marginBottom: '32px' }}>
                 <div style={{ width: '60px', height: '60px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
@@ -5481,8 +5481,16 @@ const LandingPage = () => {
               </div>
 
               <button
-                onClick={() => { setShowBillNotificationModal(false); setSelectedBillNotification(null); }}
-                style={{ width: '100%', padding: '14px', borderRadius: '14px', marginTop: '4px', border: 'none', background: 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)', color: 'white', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                onClick={() => { 
+                  if (b.notificationId) {
+                    markNotificationRead(b.notificationId, false); 
+                  }
+                  setShowBillNotificationModal(false); 
+                  setSelectedBillNotification(null); 
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(14, 165, 233, 0.4)'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+                style={{ width: '100%', padding: '14px', borderRadius: '14px', marginTop: '4px', border: 'none', background: 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)', color: 'white', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s' }}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
                 Done &amp; Close
