@@ -6561,7 +6561,9 @@ def get_public_lab_settings(lab_id):
 
 
 
+@app.post("/api/logout")
 def logout():
+
 
     session.clear()
 
