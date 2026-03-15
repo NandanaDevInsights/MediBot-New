@@ -6809,7 +6809,7 @@ def get_user_appointments():
 
         cur.execute("""
 
-            SELECT id, lab_name, patient_name, test_type, appointment_date, appointment_time, 
+            SELECT id, lab_name, patient_name, tests, appointment_date, appointment_time, 
                    status, location, contact_number, created_at, token_number
             FROM appointments 
 
