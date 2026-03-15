@@ -571,10 +571,48 @@ def send_reset_email(to_email: str, reset_link: str):
       "api-key": BREVO_API_KEY,
       "content-type": "application/json"
   }
+  
+  html_content = f"""
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <style>
+      .container {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; }}
+      .header {{ text-align: center; padding-bottom: 20px; border-bottom: 2px solid #00c6ff; }}
+      .header h1 {{ color: #0072ff; margin: 0; font-size: 24px; }}
+      .content {{ padding: 30px 0; line-height: 1.6; color: #333; }}
+      .button-container {{ text-align: center; margin: 30px 0; }}
+      .button {{ background: linear-gradient(135deg, #0072ff 0%, #00c6ff 100%); color: white !important; padding: 12px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; display: inline-block; box-shadow: 0 4px 15px rgba(0,114,255,0.3); }}
+      .footer {{ font-size: 12px; color: #888; text-align: center; padding-top: 20px; border-top: 1px solid #eee; }}
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>MediBot Healthcare</h1>
+      </div>
+      <div class="content">
+        <p>Hello,</p>
+        <p>We received a request to reset your MediBot password. Click the button below to choose a new password:</p>
+        <div class="button-container">
+          <a href="{reset_link}" class="button">Reset Password</a>
+        </div>
+        <p>If you didn't request this, you can safely ignore this email. Your password won't change until you access the link above and create a new one.</p>
+        <p>Stay healthy,<br>The MediBot Team</p>
+      </div>
+      <div class="footer">
+        <p>&copy; {datetime.now().year} MediBot Healthcare. All rights reserved.</p>
+      </div>
+    </div>
+  </body>
+  </html>
+  """
+
   payload = {
       "sender": {"name": "MediBot", "email": SMTP_FROM},
       "to": [{"email": to_email}],
       "subject": "Reset your MediBot password",
+      "htmlContent": html_content,
       "textContent": f"Click the link to reset your password: {reset_link}\nIf you did not request this, you can ignore it."
   }
   try:
@@ -600,10 +638,49 @@ def send_otp_email(to_email: str, otp_code: str):
       "api-key": BREVO_API_KEY,
       "content-type": "application/json"
   }
+  
+  html_content = f"""
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <style>
+      .container {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; }}
+      .header {{ text-align: center; padding-bottom: 20px; border-bottom: 2px solid #00c6ff; }}
+      .header h1 {{ color: #0072ff; margin: 0; font-size: 24px; }}
+      .content {{ padding: 30px 0; text-align: center; color: #333; }}
+      .otp-card {{ background: #f0f7ff; border: 2px dashed #0072ff; padding: 20px; margin: 20px 0; border-radius: 12px; display: inline-block; }}
+      .otp-code {{ font-size: 36px; font-weight: bold; color: #0072ff; letter-spacing: 5px; }}
+      .footer {{ font-size: 12px; color: #888; text-align: center; padding-top: 20px; border-top: 1px solid #eee; margin-top: 20px; }}
+      .warning {{ color: #d9534f; font-size: 14px; margin-top: 20px; }}
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>MediBot Healthcare</h1>
+      </div>
+      <div class="content">
+        <p>Hello,</p>
+        <p>Use the following One-Time Password (OTP) to securely log in to your MediBot account:</p>
+        <div class="otp-card">
+          <div class="otp-code">{otp_code}</div>
+        </div>
+        <p class="warning">This code expires in 10 minutes. Do not share this code with anyone.</p>
+        <p>Stay healthy,<br>The MediBot Team</p>
+      </div>
+      <div class="footer">
+        <p>&copy; {datetime.now().year} MediBot Healthcare. All rights reserved.</p>
+      </div>
+    </div>
+  </body>
+  </html>
+  """
+
   payload = {
       "sender": {"name": "MediBot", "email": SMTP_FROM},
       "to": [{"email": to_email}],
       "subject": "Your Login OTP - MediBot",
+      "htmlContent": html_content,
       "textContent": f"Your One-Time Password (OTP) for login is: {otp_code}\n\nThis code expires in 10 minutes.\nDo not share this code with anyone."
   }
   try:
