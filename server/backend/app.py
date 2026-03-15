@@ -7246,6 +7246,59 @@ def delete_notification(id):
         conn.close()
 
 
+
+@app.post("/api/user/notifications/mark-read")
+def mark_notifications_read():
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"message": "Not authenticated"}), 401
+    conn = get_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute("UPDATE notifications SET is_read=1 WHERE user_id=%s", (user_id,))
+        conn.commit()
+        return jsonify({"message": "All notifications marked as read"}), 200
+    except Exception as e:
+        print(f"[ERROR] Mark read failed: {e}")
+        return jsonify({"message": "Failed to mark as read"}), 500
+    finally:
+        conn.close()
+
+@app.post("/api/user/notifications/<int:id>/mark-read")
+def mark_one_notification_read(id):
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"message": "Not authenticated"}), 401
+    conn = get_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute("UPDATE notifications SET is_read=1 WHERE id=%s AND user_id=%s", (id, user_id))
+        conn.commit()
+        return jsonify({"message": "Notification marked as read"}), 200
+    except Exception as e:
+        print(f"[ERROR] Mark read failed: {e}")
+        return jsonify({"message": "Failed to mark as read"}), 500
+    finally:
+        conn.close()
+
+@app.delete("/api/user/notifications/clear-all")
+def clear_all_notifications():
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"message": "Not authenticated"}), 401
+    conn = get_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute("DELETE FROM notifications WHERE user_id=%s", (user_id,))
+        conn.commit()
+        return jsonify({"message": "All notifications cleared"}), 200
+    except Exception as e:
+        print(f"[ERROR] Clear all failed: {e}")
+        return jsonify({"message": "Failed to clear notifications"}), 500
+    finally:
+        conn.close()
+
+
 # --- Unified WhatsApp Messaging Logic ---
 def send_whatsapp_message(to_number, body_text, media_url=None):
     """
@@ -8839,7 +8892,7 @@ def create_user_booking():
                 "lab_name": lab_name,
                 "tests_booked": tests_str,
                 "payment_amount": total_amount if total_amount else "To be paid at lab",
-                "payment_method": "Online" if (payment_method or "").lower() == "online" else "Pay at Lab",
+                "payment_method": payment_method if payment_method else "Pay at Lab",
                 "payment_status": payment_status,
                 "booking_id": f"A-{new_id}",
                 "payment_date": date_str,

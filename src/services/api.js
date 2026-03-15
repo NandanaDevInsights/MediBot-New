@@ -135,6 +135,30 @@ export const getUserNotifications = async (options = {}) => {
   }, options)
 }
 
+export const markNotificationsAsRead = async (options = {}) => {
+  return fetchWithLoading(`${API_BASE}/user/notifications/mark-read`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+  }, options)
+}
+
+export const markSingleNotificationAsRead = async (id, options = {}) => {
+  return fetchWithLoading(`${API_BASE}/user/notifications/${id}/mark-read`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+  }, options)
+}
+
+export const clearAllUserNotifications = async (options = {}) => {
+  return fetchWithLoading(`${API_BASE}/user/notifications/clear-all`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+  }, options)
+}
+
 // --- Super Admin Endpoints ---
 export const getSuperAdminStats = async (options = {}) => {
   return fetchWithLoading(`${API_BASE}/super-admin/dashboard-stats`, { credentials: 'include' }, options)

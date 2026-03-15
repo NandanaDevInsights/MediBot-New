@@ -16,7 +16,7 @@ import lab7 from '../assets/lab7.png';
 import lab8 from '../assets/lab8.png';
 
 import './LandingPage.css';
-import { getUserProfile, getUserReports, updateUserProfile, getUserNotifications, API_BASE, createBooking, createPaymentOrder, verifyPayment } from '../services/api';
+import { getUserProfile, getUserReports, updateUserProfile, getUserNotifications, markNotificationsAsRead, markSingleNotificationAsRead, clearAllUserNotifications, API_BASE, createBooking, createPaymentOrder, verifyPayment } from '../services/api';
 
 // --- Icon Components ---
 const IconHome = ({ size = 20 }) => (
@@ -1123,8 +1123,13 @@ const LandingPage = () => {
     setToasts(prev => prev.filter(t => t.id !== id));
   };
 
-  const markNotificationRead = (id) => {
-    setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
+  const markNotificationRead = async (id) => {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+    try {
+      await markSingleNotificationAsRead(id);
+    } catch (e) {
+      console.error("Error marking notification as read:", e);
+    }
   };
 
   const clearNotification = async (id) => {
@@ -1144,16 +1149,12 @@ const LandingPage = () => {
   const clearAllNotifications = async () => {
     if (notifications.length === 0) return;
     if (!window.confirm("Clear all notifications?")) return;
-    // Delete all from backend, then clear UI
-    const ids = notifications.map(n => n.id);
+    
     setNotifications([]);
-    for (const id of ids) {
-      try {
-        await fetch(`${API_BASE}/user/notifications/${id}`, {
-          method: 'DELETE',
-          credentials: 'include'
-        });
-      } catch (e) { /* ignore individual failures */ }
+    try {
+      await clearAllUserNotifications();
+    } catch (e) {
+      console.error("Failed to clear all notifications:", e);
     }
   };
 
@@ -1198,7 +1199,7 @@ const LandingPage = () => {
     });
   };
 
-  const handleConfirmBooking = async () => {
+  const handleConfirmBooking = async (overrideMethod = null) => {
     try {
       const username = sessionStorage.getItem('username');
       if (!username) {
@@ -1213,12 +1214,14 @@ const LandingPage = () => {
         tests: selectedTests.map(t => typeof t === 'object' ? t.name : t),
         date: bookingDate,
         time: bookingTime,
-        paymentMethod: paymentMethod,
+        paymentMethod: overrideMethod || paymentMethod || 'Pay at Lab',
         totalAmount: selectedTests.reduce((total, test) => total + getTestPrice(test.name || test, selectedLab?.id, labSettings?.tests, selectedLab.name), 0)
       };
 
       const result = await createBooking(bookingData);
       showToast('Booking confirmed successfully!', 'success');
+      // Reset payment method after successful booking
+      setPaymentMethod('');
       return result;
     } catch (error) {
       console.error('Booking error:', error);
@@ -1322,11 +1325,10 @@ const LandingPage = () => {
             });
 
             // Payment verified successfully
-            setPaymentMethod('Online');
             setPaymentStatus('Paid');
 
-            // Confirm booking with updated status
-            await handleConfirmBooking();
+            // Confirm booking with 'Online' payment method passed directly to avoid state race condition
+            await handleConfirmBooking('Online');
 
             setShowPaymentModal(false);
             setShowFeedbackModal(true);
@@ -1597,15 +1599,23 @@ const LandingPage = () => {
     const fetchNotes = async () => {
       try {
         const notes = await getUserNotifications({ showLoader: false });
-        if (notes) setNotifications(notes);
+        // Only update if notes actually changed or if current count is different to avoid flickering/reversion
+        if (notes) {
+          setNotifications(prev => {
+             // If we just cleared or deleted locally, we might want to wait for backend to catch up
+             // However, our new backend endpoints should be fast.
+             // Simple check: if lengths are different, or if individual isRead changed.
+             return JSON.stringify(prev) !== JSON.stringify(notes) ? notes : prev;
+          });
+        }
       } catch (e) { console.error(e); }
     };
     fetchNotes();
 
-    // Poll for new notifications every 10 seconds
+    // Poll for new notifications every 15 seconds (slightly slower to give backend time)
     const notificationInterval = setInterval(() => {
       fetchNotes();
-    }, 10000); // 10 seconds
+    }, 15000);
 
     // Cleanup interval on unmount
     return () => clearInterval(notificationInterval);
@@ -4844,8 +4854,7 @@ const LandingPage = () => {
                             {/* Pay at Lab Button */}
                             <button
                               onClick={async () => {
-                                setPaymentMethod('Pay at Lab');
-                                await handleConfirmBooking();
+                                await handleConfirmBooking('Pay at Lab');
                                 setShowPaymentModal(false);
                                 setShowFeedbackModal(true);
                               }}
@@ -5435,7 +5444,9 @@ const LandingPage = () => {
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
                 </div>
                 <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, color: '#0f172a' }}>Payment Receipt</h2>
-                <p style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '4px' }}>TXN: {b.payment_id || 'N/A'}</p>
+                {b.payment_id && b.payment_id !== 'N/A' && (
+                  <p style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '4px' }}>TXN: {b.payment_id}</p>
+                )}
               </div>
 
               <div style={{ borderTop: '1px dashed #e2e8f0', borderBottom: '1px dashed #e2e8f0', padding: '24px 0', marginBottom: '24px' }}>
