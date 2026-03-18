@@ -12,29 +12,20 @@ const InputField = ({
   value,
   onChange,
   error,
-  icon,
 }) => {
   return (
     <div className="form-field">
       <label htmlFor={name}>{label}</label>
-      <div className={`input-shell ${error ? 'has-error' : ''}`}>
-        <input
-          id={name}
-          name={name}
-          type={type}
-          placeholder={placeholder}
-          value={value}
-          onChange={onChange}
-          aria-invalid={Boolean(error)}
-          aria-describedby={error ? `${name}-error` : undefined}
-          style={{ paddingLeft: icon ? undefined : '1rem' }}
-        />
-        {icon && (
-          <span className="input-icon" aria-hidden>
-            {icon}
-          </span>
-        )}
-      </div>
+      <input
+        id={name}
+        name={name}
+        type={type}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        aria-invalid={Boolean(error)}
+        aria-describedby={error ? `${name}-error` : undefined}
+      />
       {error ? (
         <p className="input-error" id={`${name}-error`}>
           {error}

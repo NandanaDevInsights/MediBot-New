@@ -3,23 +3,18 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { handleLogin, handleAdminLogin, startGoogleOAuth, getUserProfile } from '../../services/api'
 import '../LoginPage.css'
 
-const InputField = ({ label, type = 'text', name, placeholder, value, onChange, error, icon }) => {
+const InputField = ({ label, type = 'text', name, placeholder, value, onChange, error }) => {
     return (
         <div className="form-field">
             <label htmlFor={name}>{label}</label>
-            <div className={`input-shell ${error ? 'has-error' : ''}`}>
-                <input
-                    id={name}
-                    name={name}
-                    type={type}
-                    placeholder={placeholder}
-                    value={value}
-                    onChange={onChange}
-                />
-                <span className="input-icon" aria-hidden>
-                    {icon}
-                </span>
-            </div>
+            <input
+                id={name}
+                name={name}
+                type={type}
+                placeholder={placeholder}
+                value={value}
+                onChange={onChange}
+            />
             {error ? <p className="input-error">{error}</p> : null}
         </div>
     )
@@ -195,12 +190,6 @@ const AdminLoginPage = () => {
                 placeholder={role === 'LAB_ADMIN' ? "Username or admin@lab.com" : "Username or sysadmin@medibot.com"}
                 value={form.email}
                 onChange={onInput}
-                icon={
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="#4da3ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        <circle cx="12" cy="7" r="4" stroke="#4da3ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                }
             />
 
             <div className="field-with-link">
@@ -211,18 +200,6 @@ const AdminLoginPage = () => {
                     placeholder="••••••••"
                     value={form.password}
                     onChange={onInput}
-                    icon={
-                        <svg width="18" height="16" viewBox="0 0 18 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="3" y="7" width="12" height="8" rx="1.6" stroke="#4da3ff" strokeWidth="1.2" />
-                            <path
-                                d="M6 7V5C6 2.79086 7.79086 1 10 1C12.2091 1 14 2.79086 14 5V7"
-                                stroke="#4da3ff"
-                                strokeWidth="1.2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            />
-                        </svg>
-                    }
                 />
                 <Link className="inline-link" to="/admin/forgot">
                     Forgot Password?

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import './LabAdminDashboard.css';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import logoImage from '../assets/logo.png';
-import { logoutUser } from '../services/api';
+import { logoutUser, API_BASE } from '../services/api';
 
 
 // --- Icons (SVGs) for Professional Look ---
@@ -471,11 +471,11 @@ const LabAdminDashboard = () => {
         const fetchSectionData = async () => {
             try {
                 let url = '';
-                if (activeSection === 'Appointments') url = 'http://localhost:5000/api/admin/appointments';
-                if (activeSection === 'Test Orders') url = 'http://localhost:5000/api/admin/test-orders';
-                if (activeSection === 'Lab Staff') url = 'http://localhost:5000/api/admin/staff';
+                if (activeSection === 'Appointments') url = `${API_BASE}/admin/appointments`;
+                if (activeSection === 'Test Orders') url = `${API_BASE}/admin/test-orders`;
+                if (activeSection === 'Lab Staff') url = `${API_BASE}/admin/staff`;
                 if (url || activeSection === 'Reports') {
-                    const fetchUrl = activeSection === 'Reports' ? 'http://localhost:5000/api/admin/reports' : url;
+                    const fetchUrl = activeSection === 'Reports' ? `${API_BASE}/admin/reports` : url;
                     const res = await fetch(fetchUrl, { credentials: 'include' });
                     if (res.status === 401 || res.status === 403) {
                         navigate('/admin/login');
@@ -993,7 +993,7 @@ const LabAdminDashboard = () => {
                 showToast(`Token ${tokenNumber} booked successfully`);
                 fetchTokens(currentTokenData.labName, currentTokenData.date, currentTokenData.time);
                 // Also refresh main appts list to get the updated tokenNumber
-                const url = 'http://localhost:5000/api/admin/appointments';
+                const url = `${API_BASE}/admin/appointments`;
                 const apptsRes = await fetch(url, { credentials: 'include' });
                 if (apptsRes.ok) {
                     const data = await apptsRes.json();
@@ -1818,7 +1818,7 @@ const LabAdminDashboard = () => {
                                                                 a.id === appt.id ? { ...a, status: newStatus } : a
                                                             ));
                                                             // Also trigger fetch appointments just to be safe
-                                                            const url = 'http://localhost:5000/api/admin/appointments';
+                                                            const url = `${API_BASE}/admin/appointments`;
                                                             const apptsRes = await fetch(url, { credentials: 'include' });
                                                             if (apptsRes.ok) {
                                                                 const data = await apptsRes.json();
@@ -2431,7 +2431,7 @@ const LabAdminDashboard = () => {
                                         window.open(r.file_path, '_blank');
                                     } else if (r.type === 'report') {
                                         // Fallback for older data format
-                                        window.open(`http://localhost:5000/api/view-report/${r.id}`, '_blank');
+                                        window.open(`${API_BASE}/view-report/${r.id}`, '_blank');
                                     }
                                 }}
                                 style={{ padding: '6px 16px', borderRadius: '12px', fontSize: '0.8rem', opacity: (r.type === 'report' || r.file_path) ? 1 : 0.5, cursor: (r.type === 'report' || r.file_path) ? 'pointer' : 'not-allowed' }}
