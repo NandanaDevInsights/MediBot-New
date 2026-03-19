@@ -251,6 +251,70 @@ def register_super_admin_endpoints(app):
 
             conn.close()
 
+    @app.post("/api/super-admin/fix-user-role")
+    def fix_user_role():
+        """
+        Temporary endpoint: Restore a user's role (e.g. LAB_ADMIN accidentally changed to USER).
+        Only callable by a logged-in SUPER_ADMIN.
+        Body: { "email": "...", "role": "LAB_ADMIN" }
+        """
+        if not check_super_admin():
+            return jsonify({"message": "Unauthorized"}), 403
+
+        data = request.json or {}
+        email = (data.get("email") or "").strip()
+        new_role = (data.get("role") or "").strip().upper()
+
+        if not email or not new_role:
+            return jsonify({"message": "email and role are required"}), 400
+
+        ALLOWED_ROLES = {"USER", "LAB_ADMIN", "SUPER_ADMIN"}
+        if new_role not in ALLOWED_ROLES:
+            return jsonify({"message": f"Invalid role. Must be one of: {ALLOWED_ROLES}"}), 400
+
+        conn = get_connection()
+        try:
+            cur = conn.cursor(dictionary=True)
+
+            # Check user exists
+            cur.execute("SELECT id, role FROM users WHERE email = %s LIMIT 1", (email,))
+            user = cur.fetchone()
+            if not user:
+                return jsonify({"message": f"No user found with email: {email}"}), 404
+
+            old_role = user["role"]
+            user_id = user["id"]
+
+            # Update role
+            cur.execute("UPDATE users SET role = %s WHERE email = %s", (new_role, email))
+
+            # If restoring to LAB_ADMIN, also ensure they're in the whitelist
+            if new_role == "LAB_ADMIN":
+                cur.execute("INSERT IGNORE INTO lab_admin_users (email) VALUES (%s)", (email,))
+
+            conn.commit()
+
+            # Check if lab_admin_profile still exists
+            profile_intact = False
+            if new_role == "LAB_ADMIN":
+                cur.execute("SELECT id, lab_name FROM lab_admin_profile WHERE user_id = %s LIMIT 1", (user_id,))
+                profile_row = cur.fetchone()
+                profile_intact = profile_row is not None
+
+            return jsonify({
+                "message": f"Role updated successfully: {old_role} → {new_role}",
+                "email": email,
+                "old_role": old_role,
+                "new_role": new_role,
+                "lab_admin_profile_intact": profile_intact
+            }), 200
+
+        except Exception as e:
+            print(f"[fix_user_role] Error: {e}")
+            return jsonify({"message": str(e)}), 500
+        finally:
+            conn.close()
+
     @app.delete("/api/super-admin/delete-user")
     def delete_user():
         if not check_super_admin():

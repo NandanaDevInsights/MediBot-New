@@ -2039,8 +2039,85 @@ const SuperAdminDashboard = () => {
 
                     </div>
                 </div>
+
+                {/* TEMPORARY ADMIN FIX TOOL */}
+                <div style={{ marginTop: '32px' }}>
+                    <div className="glass-card" style={{ padding: '32px', borderLeft: '4px solid var(--primary)' }}>
+                        <h3 className="card-title" style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <Icon.Settings /> Role Restoration Tool (Support)
+                        </h3>
+                        <p style={{ color: 'var(--text-muted)', marginBottom: '24px', fontSize: '0.9rem' }}>
+                            Use this tool to fix accounts where the Lab Admin's role was accidentally overwritten by a patient signup.
+                        </p>
+                        
+                        <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-end' }}>
+                            <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+                                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', marginBottom: '8px' }}>Target Email Address</label>
+                                <input 
+                                    id="fix-role-email"
+                                    className="styled-input" 
+                                    defaultValue="47.nandanapramod@gmail.com"
+                                    style={{ padding: '12px 16px', borderRadius: '12px', background: 'var(--bg-card)' }}
+                                />
+                            </div>
+                            <div className="form-group" style={{ width: '200px', marginBottom: 0 }}>
+                                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', marginBottom: '8px' }}>Role to Restore</label>
+                                <select id="fix-role-target" className="styled-select" style={{ borderRadius: '12px', background: 'var(--bg-card)' }}>
+                                    <option value="LAB_ADMIN">Lab Admin</option>
+                                    <option value="USER">Patient</option>
+                                </select>
+                            </div>
+                            <button 
+                                className="btn btn-primary" 
+                                style={{ height: '46px', padding: '0 24px', borderRadius: '12px', fontWeight: 800 }}
+                                onClick={async () => {
+                                    const email = document.getElementById('fix-role-email').value;
+                                    const role = document.getElementById('fix-role-target').value;
+                                    if(!email) return alert('Enter email');
+                                    
+                                    try {
+                                        const res = await fetch('https://medibot-render-app.onrender.com/api/super-admin/fix-user-role', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ email, role }) // Uses relative path, depends on proxy or API_BASE
+                                        });
+                                        const data = await res.json();
+                                        if(res.ok) {
+                                            alert(`✅ Success: ${data.message}\nProfile Intact: ${data.lab_admin_profile_intact ? 'Yes' : 'No'}`);
+                                        } else {
+                                            alert(`❌ Failed: ${data.message}`);
+                                        }
+                                    } catch (err) {
+                                        // Fallback if full URL is needed (Render) if proxy fails
+                                        try {
+                                            const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+                                            const res = await fetch(`${API_BASE}/super-admin/fix-user-role`, {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                credentials: 'include',
+                                                body: JSON.stringify({ email, role })
+                                            });
+                                            const data = await res.json();
+                                            if(res.ok) {
+                                                alert(`✅ Success: ${data.message}\nProfile Intact: ${data.lab_admin_profile_intact ? 'Yes' : 'No'}`);
+                                            } else {
+                                                alert(`❌ Failed: ${data.message}`);
+                                            }
+                                        } catch(e) {
+                                            alert(`Network Error: ${err.message}`);
+                                        }
+                                    }
+                                }}
+                            >
+                                Execute Fix
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         );
+
     };
 
     const renderUsers = () => {
