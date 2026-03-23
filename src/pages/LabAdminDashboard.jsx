@@ -287,7 +287,7 @@ const LabAdminDashboard = () => {
         // 1. Basic Info
         name: '', gender: 'Male', dob: '', phone: '', email: '', address: '', photo: null, photoPreview: null,
         // 2. Employment
-        staffId: `STA-${Math.floor(1000 + Math.random() * 9000)}`, role: '', department: '', type: 'Full-time', joiningDate: new Date().toISOString().split('T')[0], experience: '',
+        staffId: `STA-${Math.floor(1000 + Math.random() * 9000)}`, role: '', department: '', type: 'Full-time', joiningDate: new Date().toLocaleDateString('en-CA'), experience: '',
         // 3. Shift
         shift: 'Morning', workingDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], workingHours: '9:00 AM - 5:00 PM', homeCollection: false, maxOrders: '',
         // 5. Skills
@@ -659,7 +659,7 @@ const LabAdminDashboard = () => {
     // --- Count Helper Functions (for KPI cards) ---
     const countStatus = (status) => appointments.filter(a => a.status === status).length;
     const countToday = () => {
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toLocaleDateString('en-CA');
         return appointments.filter(a => a.date === today).length;
     };
     const countDelayed = () => appointments.filter(a => a.isDelayed || a.status === 'Pending').length;
@@ -1753,10 +1753,10 @@ const LabAdminDashboard = () => {
             return matchesSearch && matchesStatus && matchesTest && matchesTech && matchesDelay;
         });
 
-        const todayStr = new Date().toISOString().split('T')[0];
+        const todayStr = new Date().toLocaleDateString('en-CA');
         const todayAppointments = filteredAppointments.filter(a => a.date === todayStr);
-        const upcomingAppointments = filteredAppointments.filter(a => new Date(a.date) > new Date(todayStr));
-        const historyAppointments = filteredAppointments.filter(a => new Date(a.date) < new Date(todayStr) || a.status === 'Completed');
+        const upcomingAppointments = filteredAppointments.filter(a => a.date > todayStr);
+        const historyAppointments = filteredAppointments.filter(a => a.date < todayStr);
 
         const activeList = dateFilter === 'Today' ? todayAppointments : (dateFilter === 'Upcoming' ? upcomingAppointments : historyAppointments);
 
@@ -4105,7 +4105,7 @@ const LabAdminDashboard = () => {
             const now = new Date();
 
             if (paymentDateFilter === 'Today') {
-                const today = now.toISOString().split('T')[0];
+                const today = now.toLocaleDateString('en-CA');
                 return matchesSearch && String(dateStr).includes(today);
             }
             if (paymentDateFilter === 'This Week') {
