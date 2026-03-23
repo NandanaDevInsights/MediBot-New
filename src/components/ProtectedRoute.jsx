@@ -20,6 +20,9 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
                 .then(data => {
                     // Recovered!
                     sessionStorage.setItem('auth_role', data.role);
+                    if (data.username) sessionStorage.setItem('username', data.username);
+                    if (data.id) sessionStorage.setItem('user_id', data.id);
+                    if (data.email) sessionStorage.setItem('email', data.email);
                     setIsVerified(true);
                 })
                 .catch(() => {
