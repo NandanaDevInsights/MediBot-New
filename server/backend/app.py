@@ -4609,9 +4609,7 @@ def get_patient_history(user_id):
             
 
             # Fetch from 'user_profile' table as requested
-
-            cur.execute("SELECT * FROM user_profile WHERE user_id=%s", (uid,))
-
+            cur.execute("SELECT display_name, contact_number, address FROM user_profile WHERE user_id=%s", (uid,))
             prof_row = cur.fetchone()
 
             
@@ -7989,8 +7987,6 @@ def whatsapp_webhook():
 
         return str(resp)
 
-
-
     # 2. Get image URL and credentials
 
     media_url = request.form.get("MediaUrl0")
@@ -8354,7 +8350,7 @@ def whatsapp_webhook():
 
                 FROM users u
 
-                LEFT JOIN user_profiles up ON u.id = up.user_id 
+                LEFT JOIN user_profile up ON u.id = up.user_id 
 
                 WHERE up.contact_number LIKE %s OR u.email LIKE %s
 
