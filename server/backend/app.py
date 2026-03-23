@@ -7096,20 +7096,28 @@ def upload_lab_report():
         if not appt:
             return jsonify({"message": "Appointment not found"}), 404
             
+        # Get lab_id and lab_name for the admin
+        cur.execute("SELECT lab_id, lab_name FROM lab_admin_profile WHERE user_id=%s", (session.get("user_id"),))
+        lab_row = cur.fetchone()
+        lab_id = lab_row['lab_id'] if lab_row else None
+        lab_name = lab_row['lab_name'] if lab_row else "MediBot Lab"
+
         # Read file content for BLOB storage
         file_content = report_file.read()
         
         # Execute insert
         cur.execute("""
-            INSERT INTO reports (patient_id, test_name, file_path, status, uploaded_at, lab_id, appointment_id, report_content)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO reports (patient_id, patient_name, test_name, file_path, status, uploaded_at, lab_id, lab_name, appointment_id, report_content)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
             appt['user_id'],
-            appt['test_type'] or appt['tests'],
+            appt.get('patient_name', 'Unknown Patient'),
+            appt.get('test_type') or appt.get('tests') or 'General Test',
             f"reports/{report_file.filename}", # Dummy path, we use BLOB
             'Completed',
             datetime.now(),
-            appt.get('lab_id'),
+            lab_id,
+            lab_name,
             appointment_id,
             file_content
         ))
