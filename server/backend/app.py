@@ -752,8 +752,17 @@ def send_appointment_notification(appointment_id, cur):
                     print(f"[WARN] Failed to insert notification into DB: {dbe}")
 
             # 2. WhatsApp Notifications - Immediate to patient (threaded)
-            # send that notification message to the patient's WhatsApp using Twilio (9847458290... at the exact time)
-            patient_contact = "+919847458290"
+            # send that notification message to the patient's WhatsApp using Twilio
+            
+            # Use dynamic patient contact
+            raw_contact = apt_contact or prof_contact or "9847458290"
+            patient_contact = str(raw_contact).strip()
+            if not patient_contact.startswith('+'):
+                if len(patient_contact) == 10:
+                    patient_contact = "+91" + patient_contact
+                elif len(patient_contact) == 12 and patient_contact.startswith('91'):
+                    patient_contact = "+" + patient_contact
+            
             if patient_contact:
                 print(f"[INFO] Threading Patient WhatsApp to {patient_contact}")
                 import threading
@@ -7146,7 +7155,15 @@ def upload_lab_report():
         media_link = f"{base_url.rstrip('/')}/api/view-report/{report_id}"
         
         # Send that PDF to the patient's WhatsApp using Twilio (no delays)
-        patient_phone = "+919847458290"
+        # Use dynamic patient contact from appointment details
+        raw_contact = appt.get('contact_number') or appt.get('apt_contact') or "9847458290"
+        patient_phone = str(raw_contact).strip()
+        if not patient_phone.startswith('+'):
+            if len(patient_phone) == 10:
+                patient_phone = "+91" + patient_phone
+            elif len(patient_phone) == 12 and patient_phone.startswith('91'):
+                patient_phone = "+" + patient_phone
+
         msg_body = f"📄 *LAB REPORT ATTACHED*\n\nHello, your diagnostic report is now available.\n\nThank you for using MediBot. Stay healthy and visit us again"
         print(f"[INFO] Sending report WhatsApp immediately to {patient_phone}")
         # Call it asynchronously so the UI upload completes instantly
@@ -8511,7 +8528,7 @@ def whatsapp_webhook():
 
 
 
-        website_link = "https://medibot-66976.web.app/login"
+        website_link = "https://medi-bot-new.vercel.app/login"
 
         # Show all detected tests as requested
 
